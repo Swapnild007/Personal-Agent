@@ -14,13 +14,28 @@ class Agent:
     def __init__(self,tools:ToolRegistry):
         self.tools=tools
         self.histories:dict[str,list[dict[str,Any]]]={}
-    async def chat(self,conversation_id:str,message:str,mode:str="general")->str:
-        if mode not in self.MODE_GUIDANCE: mode="general"
+
+    def infer_mode(self,message:str)->str:
+        import re
+        text=message.lower()
+        coding_terms=r"\b(code|coding|debug|bug|error|exception|python|javascript|typescript|html|css|react|node|sql|api|json|git|github|repo|repository|commit|branch|function|class|variable|script|terminal|docker|deploy|deployment|frontend|backend|database|regex|algorithm|program|programming|compile|compiler|syntax|stack trace|runtime)\b"
+        tutor_terms=r"\b(teach|learn|lesson|course|quiz|test me|practice|exercise|study|exam|homework|tutorial|beginner|understand|explain simply|explain like|what is|why does|how does|concept|definition|flashcard|assessment)\b"
+        if re.search(coding_terms,text):
+            return "coding"
+        if re.search(tutor_terms,text) and not re.search(r"\b(write|build|fix|debug|code|repo|github|api)\b",text):
+            return "tutor"
+        return "general"
+
+    async def chat(self,conversation_id:str,message:str,mode:str|None=None)->tuple[str,str]:
+        mode=mode if mode in self.MODE_GUIDANCE else self.infer_mode(message)
         if not LLM_API_KEY or not LLM_MODEL:
             return "Radha is ready, but the cloud model is not configured yet. Set LLM_API_KEY and LLM_MODEL in the backend environment."
         history=self.histories.setdefault(conversation_id,[])
+        system_content="You are Radha, a single personal AI agent with one shared identity and shared memory. Current operating mode: "+mode+". "+self.MODE_GUIDANCE[mode]+" Automatically adapt to the user's intent. If the next message clearly belongs to another mode, switch modes silently. Use tools only when useful. Never claim an action was completed unless a tool confirms it."
         if not history:
-            history.append({"role":"system","content":"You are Radha, a single personal AI agent with one shared identity and shared memory. Current operating mode: "+mode+". "+self.MODE_GUIDANCE[mode]+" Use tools only when useful. Never claim an action was completed unless a tool confirms it."})
+            history.append({"role":"system","content":system_content})
+        else:
+            history[0]={"role":"system","content":system_content}
         history.append({"role":"user","content":message})
         async with httpx.AsyncClient(timeout=60,follow_redirects=True) as client:
             for _ in range(MAX_TOOL_ROUNDS):
