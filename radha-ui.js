@@ -89,7 +89,9 @@ async function realTask(request){
      const pct={queued:8,planning:18,executing:48,waiting_for_approval:62,verifying:82,completed:100,failed:100,cancelled:0}[item.state]||45;
      progress.style.width=pct+"%";
    }
+   if(item.type==="task_created")addActivity("TASK CREATED","RADHA accepted the mission.");
    if(item.type==="model_routed")addActivity("MODEL ROUTED",item.decision||item.model||"OmniRoute auto routing");
+   if(item.type==="verification_started")addActivity("VERIFICATION STARTED",item.reason||"RADHA is validating the result.");
    if(item.type==="tool_started")addActivity("TOOL STARTED",item.tool||"");
    if(item.type==="file_changed")addActivity("FILE CHANGED",item.path||"");
    if(item.type==="tool_output")addActivity(item.stream==="stderr"?"STDERR":"STDOUT",(item.chunk||"").trim().slice(0,220));
