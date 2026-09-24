@@ -128,7 +128,7 @@ export default function Workspace() {
     };
 
     return () => socket.close();
-  }, [taskId]);
+  }, [taskId, selected]);
 
   async function loadTree() {
     const response = await fetch(`${API}/workspace/tree`);
