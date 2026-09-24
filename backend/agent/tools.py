@@ -64,7 +64,8 @@ class Workspace:
 
 
 class CommandPolicy:
-    SHELL_META = re.compile(r"[;&|<>\x60$()]|\n|\r")
+    SHELL_META = re.compile(r"[;&|<>\x60$()]")
+    CONTROL_CHARS = re.compile(r"[\n\r\x00]")
     ALWAYS_BLOCK = {
         "shutdown",
         "reboot",
@@ -113,18 +114,26 @@ class CommandPolicy:
         if not command or len(command) > 2000:
             raise WorkspaceSecurityError("Command is empty or too long.")
 
-        if self.SHELL_META.search(command):
+        if self.CONTROL_CHARS.search(command):
             raise WorkspaceSecurityError(
-                "Shell operators and shell interpolation are disabled."
+                "Control characters and shell newlines are disabled."
             )
 
         try:
-            argv = shlex.split(command, posix=os.name != "nt")
+            lexer = shlex.shlex(command, posix=os.name != "nt", punctuation_chars=True)
+            lexer.whitespace_split = True
+            lexer.commenters = ""
+            argv = list(lexer)
         except ValueError as exc:
             raise WorkspaceSecurityError(f"Invalid command syntax: {exc}") from exc
 
         if not argv:
             raise WorkspaceSecurityError("Command is empty.")
+
+        if any(self.SHELL_META.fullmatch(token) for token in argv):
+            raise WorkspaceSecurityError(
+                "Shell operators and shell interpolation are disabled."
+            )
 
         binary = Path(argv[0]).name.lower()
         if binary in self.ALWAYS_BLOCK:
