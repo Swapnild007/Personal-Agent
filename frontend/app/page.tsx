@@ -19,6 +19,9 @@ type EventItem = {
   message?: string;
   result?: { status?: string; stdout?: string; stderr?: string; error?: string };
   command?: string;
+  arguments?: Record<string, unknown>;
+  stream?: "stdout" | "stderr";
+  chunk?: string;
   reason?: string;
   approval_id?: string;
 };
