@@ -9,7 +9,7 @@ from config import CORS_ORIGINS, DATABASE_PATH, LLM_API_KEY, LLM_MODEL
 from memory import MemoryStore
 from tools import ToolRegistry
 
-app = FastAPI(title="Personal-Agent", version="0.3.0")
+app = FastAPI(title="Personal-Agent", version="0.4.0")
 
 origins = [item.strip() for item in CORS_ORIGINS.split(",") if item.strip()]
 app.add_middleware(
@@ -28,7 +28,7 @@ agent = Agent(tools)
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=12000)
     conversation_id: str = Field(default="default", min_length=1, max_length=120)
-    mode: Literal["general", "coding", "tutor"] = "general"
+    mode: Literal["general", "coding", "tutor"] | None = None
 
 
 @app.get("/health")
@@ -40,7 +40,7 @@ async def health():
         "modes": ["general", "coding", "tutor"],
         "tools": ["remember", "recall", "web_fetch"],
         "llm_configured": bool(LLM_API_KEY and LLM_MODEL),
-        "version": "0.3.0",
+        "version": "0.4.0",
     }
 
 
@@ -51,10 +51,10 @@ async def memories():
 
 @app.post("/chat")
 async def chat(request: ChatRequest):
-    answer = await agent.chat(request.conversation_id, request.message, request.mode)
+    answer, mode = await agent.chat(request.conversation_id, request.message, request.mode)
     return {
         "conversation_id": request.conversation_id,
-        "mode": request.mode,
+        "mode": mode,
         "agent": "Radha",
         "answer": answer,
     }
