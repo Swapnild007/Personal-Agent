@@ -29,7 +29,7 @@ RADHA uses OmniRoute as its model gateway. Configure `OMNIROUTE_BASE_URL` (defau
 
 File operations are restricted to the configured workspace. Commands run with `shell=False`, a timeout, a restricted environment, bounded output, and command-policy checks.
 
-This is not a hostile-code sandbox. Public or multi-tenant execution must move to a disposable container or VM with OS resource limits and network isolation before production exposure.
+This is not a hostile-code sandbox. Public or multi-tenant execution must move to a disposable container or VM with OS resource limits and network isolation before production exposure. After RADHA mutates files, the engine also enforces a verification gate: it will request a relevant successful execution before reporting the mission as completed.
 
 
 ## OmniRoute
