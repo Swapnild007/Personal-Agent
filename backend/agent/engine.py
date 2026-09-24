@@ -53,6 +53,7 @@ class RadhaEngine:
         self.tools = tools
         self.runtime = AgentRuntime(emit)
         self.gateway = OmniRouteModelGateway(
+            base_url=OMNIROUTE_BASE_URL,
             api_key=OMNIROUTE_API_KEY,
             model=OMNIROUTE_MODEL,
         )
