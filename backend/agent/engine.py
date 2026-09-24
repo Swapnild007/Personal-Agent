@@ -6,7 +6,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 
-from config import MAX_TOOL_ROUNDS, OPENAI_API_KEY, OPENAI_MODEL
+from config import (\n    MAX_TOOL_ROUNDS,\n    OPENAI_API_KEY,\n    OPENAI_BASE_URL,\n    OPENAI_MODEL,\n)
 from .gateway import OpenAIModelGateway
 from .planner import Planner
 from .runtime import AgentRuntime, TaskState
@@ -50,6 +50,7 @@ class RadhaEngine:
         self.gateway = OpenAIModelGateway(
             api_key=OPENAI_API_KEY,
             model=OPENAI_MODEL,
+            base_url=OPENAI_BASE_URL or None,
         )
         self.planner = Planner()
         self.approvals = ApprovalGate()
@@ -248,13 +249,41 @@ class RadhaEngine:
                     approval_id=approval_id,
                     approved=True,
                 )
-                return await self.tools.execute(
+                return await self._execute_tool(
+                    task_id,
                     name,
                     arguments,
                     approved=True,
                 )
 
-        return await self.tools.execute(name, arguments)
+        return await self._execute_tool(task_id, name, arguments)
+
+    async def _execute_tool(
+        self,
+        task_id: str,
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        approved: bool = False,
+    ) -> dict[str, Any]:
+        if name == "execute_command":
+            async def on_output(stream: str, chunk: str) -> None:
+                task = self.runtime.tasks[task_id]
+                await self.runtime.event(
+                    task,
+                    "tool_output",
+                    tool=name,
+                    stream=stream,
+                    chunk=chunk,
+                )
+
+            return await self.tools.execute_command_streaming(
+                arguments["command"],
+                approved=approved,
+                on_output=on_output,
+            )
+
+        return await self.tools.execute(name, arguments, approved=approved)
 
     def approve(self, approval_id: str) -> bool:
         return self.approvals.resolve(approval_id, True)
