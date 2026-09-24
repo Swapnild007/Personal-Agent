@@ -1,1 +1,31 @@
-from __future__ import annotations\n\nimport os\nfrom pathlib import Path\nfrom dotenv import load_dotenv\n\nload_dotenv()\nBASE_DIR = Path(__file__).resolve().parent\nWORKSPACE_ROOT = Path(os.getenv("RADHA_WORKSPACE_ROOT", BASE_DIR / "workspace")).resolve()\nOPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")\nOPENAI_MODEL = os.getenv("RADHA_MODEL", "gpt-4o")\nHOST = os.getenv("RADHA_HOST", "127.0.0.1")\nPORT = int(os.getenv("RADHA_PORT", "8000"))\nCOMMAND_TIMEOUT_SECONDS = int(os.getenv("RADHA_COMMAND_TIMEOUT", "60"))\nMAX_TOOL_ROUNDS = int(os.getenv("RADHA_MAX_TOOL_ROUNDS", "24"))\nMAX_FILE_BYTES = int(os.getenv("RADHA_MAX_FILE_BYTES", str(2 * 1024 * 1024)))\nMAX_COMMAND_OUTPUT_BYTES = int(os.getenv("RADHA_MAX_COMMAND_OUTPUT_BYTES", str(256 * 1024)))\nMAX_DIRECTORY_ENTRIES = int(os.getenv("RADHA_MAX_DIRECTORY_ENTRIES", "500"))\nCORS_ORIGINS = [x.strip() for x in os.getenv("RADHA_CORS_ORIGINS", "http://localhost:3000").split(",") if x.strip()]\nWORKSPACE_ROOT.mkdir(parents=True, exist_ok=True)\n
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
+WORKSPACE_ROOT = Path(os.getenv("RADHA_WORKSPACE_ROOT", str(BASE_DIR / "workspace"))).resolve()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("RADHA_MODEL", "gpt-4o")
+HOST = os.getenv("RADHA_HOST", "127.0.0.1")
+PORT = int(os.getenv("RADHA_PORT", "8000"))
+COMMAND_TIMEOUT_SECONDS = int(os.getenv("RADHA_COMMAND_TIMEOUT", "60"))
+MAX_TOOL_ROUNDS = int(os.getenv("RADHA_MAX_TOOL_ROUNDS", "24"))
+MAX_FILE_BYTES = int(os.getenv("RADHA_MAX_FILE_BYTES", str(2 * 1024 * 1024)))
+MAX_COMMAND_OUTPUT_BYTES = int(os.getenv("RADHA_MAX_COMMAND_OUTPUT_BYTES", str(256 * 1024)))
+MAX_DIRECTORY_ENTRIES = int(os.getenv("RADHA_MAX_DIRECTORY_ENTRIES", "500"))
+CORS_ORIGINS = [
+    value.strip()
+    for value in os.getenv(
+        "RADHA_CORS_ORIGINS",
+        "http://localhost:3000",
+    ).split(",")
+    if value.strip()
+]
+
+WORKSPACE_ROOT.mkdir(parents=True, exist_ok=True)
