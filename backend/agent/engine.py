@@ -67,7 +67,10 @@ class RadhaEngine:
             task_id,
             self.planner.messages(request),
         )
+        files_mutated = False
+        verification_succeeded = False
 
+        await self.runtime.event(task, "task_created", request=request)
         await self.runtime.transition(task, TaskState.PLANNING)
 
         try:
@@ -118,9 +121,41 @@ class RadhaEngine:
                 history.append(assistant_message)
 
                 if not message.tool_calls:
+                    if files_mutated and not verification_succeeded:
+                        await self.runtime.transition(
+                            task,
+                            TaskState.VERIFYING,
+                            round=round_number,
+                        )
+                        await self.runtime.event(
+                            task,
+                            "verification_started",
+                            reason="RADHA changed workspace files but no successful execution has verified the result.",
+                            round=round_number,
+                        )
+                        history.append(
+                            {
+                                "role": "user",
+                                "content": (
+                                    "Verification gate: you changed workspace files but have not "
+                                    "produced successful execution evidence. Do not report success yet. "
+                                    "Use execute_command to run the most relevant available tests, "
+                                    "build, lint, type-check, or other validation for the change. "
+                                    "If verification fails, diagnose and repair when safe, then verify again."
+                                ),
+                            }
+                        )
+                        continue
+
                     await self.runtime.transition(
                         task,
                         TaskState.VERIFYING,
+                        round=round_number,
+                    )
+                    await self.runtime.event(
+                        task,
+                        "verification_started",
+                        reason="Final verification evidence is available.",
                         round=round_number,
                     )
                     await self.runtime.event(
@@ -171,6 +206,19 @@ class RadhaEngine:
                         name,
                         arguments,
                     )
+
+                    if (
+                        name in {"write_file", "patch_file"}
+                        and result.get("status") in {"written", "patched"}
+                    ):
+                        files_mutated = True
+
+                    if (
+                        name == "execute_command"
+                        and result.get("status") == "completed"
+                        and result.get("exit_code") == 0
+                    ):
+                        verification_succeeded = True
 
                     history.append(
                         {
