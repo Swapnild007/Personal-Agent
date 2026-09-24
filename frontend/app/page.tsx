@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
-import { FitAddon } from "xterm-addon-fit";
-import { Terminal } from "xterm";
 
 type TreeNode = {
   name: string;
@@ -47,7 +45,7 @@ export default function Workspace() {
   const [busy, setBusy] = useState(false);
   const [approval, setApproval] = useState<EventItem | null>(null);
   const terminalRef = useRef<HTMLDivElement | null>(null);
-  const terminalInstance = useRef<Terminal | null>(null);
+  const terminalInstance = useRef<import("xterm").Terminal | null>(null);
 
   const files = useMemo(() => (tree ? flatten(tree) : []), [tree]);
 
@@ -58,26 +56,41 @@ export default function Workspace() {
   useEffect(() => {
     if (!terminalRef.current || terminalInstance.current) return;
 
-    const terminal = new Terminal({
-      convertEol: true,
-      cursorBlink: true,
-      fontSize: 12,
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-      theme: { background: "#080c14", foreground: "#b9c6dc", cursor: "#6475ff" },
-      scrollback: 3000,
-    });
-    const fit = new FitAddon();
-    terminal.loadAddon(fit);
-    terminal.open(terminalRef.current);
-    fit.fit();
-    terminal.writeln("\x1b[90mRADHA terminal ready. Command output will stream here.\x1b[0m");
-    terminalInstance.current = terminal;
+    let disposed = false;
+    let terminal: import("xterm").Terminal | null = null;
 
-    const resize = () => fit.fit();
-    window.addEventListener("resize", resize);
+    async function mountTerminal() {
+      const [{ Terminal }, { FitAddon }] = await Promise.all([
+        import("xterm"),
+        import("xterm-addon-fit"),
+      ]);
+      if (disposed || !terminalRef.current) return;
+
+      terminal = new Terminal({
+        convertEol: true,
+        cursorBlink: true,
+        fontSize: 12,
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+        theme: { background: "#080c14", foreground: "#b9c6dc", cursor: "#6475ff" },
+        scrollback: 3000,
+      });
+      const fit = new FitAddon();
+      terminal.loadAddon(fit);
+      terminal.open(terminalRef.current);
+      fit.fit();
+      terminal.writeln("\x1b[90mRADHA terminal ready. Command output will stream here.\x1b[0m");
+      terminalInstance.current = terminal;
+
+      const resize = () => fit.fit();
+      window.addEventListener("resize", resize);
+      return () => window.removeEventListener("resize", resize);
+    }
+
+    void mountTerminal();
+
     return () => {
-      window.removeEventListener("resize", resize);
-      terminal.dispose();
+      disposed = true;
+      terminal?.dispose();
       terminalInstance.current = null;
     };
   }, []);
