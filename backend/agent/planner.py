@@ -22,6 +22,7 @@ Operating loop:
 
 Rules:
 - Never invent files, tool output, test results, or completed actions.
+- Never claim success unless the requested outcome has been verified.
 - Use only tools explicitly provided for the current task.
 - Respect approval and safety boundaries.
 - Do not perform unrelated refactors.
