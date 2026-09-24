@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { DiffEditor } from "@monaco-editor/react";
 
 type TreeNode = {
   name: string;
@@ -38,6 +38,8 @@ export default function Workspace() {
   const [tree, setTree] = useState<TreeNode | null>(null);
   const [selected, setSelected] = useState("");
   const [code, setCode] = useState("// Select a file from the explorer");
+  const [originalCode, setOriginalCode] = useState("");
+  const [showDiff, setShowDiff] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [taskId, setTaskId] = useState("");
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -139,6 +141,8 @@ export default function Workspace() {
     const data = (await response.json()) as { content: string; path: string };
     setSelected(data.path);
     setCode(data.content);
+    setOriginalCode(data.content);
+    setShowDiff(false);
   }
 
   async function runTask() {
@@ -237,23 +241,45 @@ export default function Workspace() {
         <section className="panel editor-panel">
           <div className="editor-head">
             <span>{selected || "RADHA EDITOR"}</span>
-            <span className="muted">{selected ? "READ VIEW" : "NO FILE SELECTED"}</span>
+            <div className="editor-controls">
+              {selected && <button onClick={() => setShowDiff((value) => !value)}>{showDiff ? "CODE" : "DIFF"}</button>}
+              <span className="muted">{selected ? (showDiff ? "CHANGE VIEW" : "READ VIEW") : "NO FILE SELECTED"}</span>
+            </div>
           </div>
           <div className="monaco-host">
-          <Editor
-            height="100%"
-            theme="vs-dark"
-            language={selected.endsWith(".py") ? "python" : selected.endsWith(".json") ? "json" : "plaintext"}
-            value={code}
-            onChange={(value) => setCode(value ?? "")}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 13,
-              automaticLayout: true,
-              padding: { top: 18 },
-              scrollBeyondLastLine: false,
-            }}
-          />
+            {showDiff ? (
+              <DiffEditor
+                height="100%"
+                theme="vs-dark"
+                original={originalCode}
+                modified={code}
+                language={selected.endsWith(".py") ? "python" : selected.endsWith(".json") ? "json" : "plaintext"}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  automaticLayout: true,
+                  renderSideBySide: true,
+                  readOnly: true,
+                  padding: { top: 18 },
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            ) : (
+              <Editor
+                height="100%"
+                theme="vs-dark"
+                language={selected.endsWith(".py") ? "python" : selected.endsWith(".json") ? "json" : "plaintext"}
+                value={code}
+                onChange={(value) => setCode(value ?? "")}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  automaticLayout: true,
+                  padding: { top: 18 },
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            )}
           </div>
           <section className="terminal-panel">
             <div className="terminal-head">
