@@ -265,6 +265,35 @@ class ToolRegistry:
             ],
         }
 
+    def tree(self, path: str) -> dict[str, Any]:
+        directory = self.workspace.resolve(path, allow_root=True)
+        if not directory.exists() or not directory.is_dir():
+            raise ToolExecutionError(f"Directory not found: {path}")
+
+        def build(current: Path, depth: int = 0) -> dict[str, Any]:
+            if depth > 20:
+                return {"name": current.name, "type": "directory", "truncated": True}
+
+            children = sorted(
+                current.iterdir(),
+                key=lambda item: (not item.is_dir(), item.name.lower()),
+            )[:MAX_DIRECTORY_ENTRIES]
+
+            return {
+                "name": current.name or ".",
+                "type": "directory",
+                "children": [
+                    build(item, depth + 1)
+                    if item.is_dir()
+                    else {"name": item.name, "type": "file"}
+                    for item in children
+                ],
+            }
+
+        result = build(directory)
+        result["path"] = self.workspace.relative(directory)
+        return result
+
     def read_file(self, path: str) -> dict[str, Any]:
         file_path = self.workspace.resolve(path)
         if not file_path.exists() or not file_path.is_file():
