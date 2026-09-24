@@ -30,8 +30,7 @@ CORS_ORIGINS = [
     value.strip()
     for value in os.getenv(
         "RADHA_CORS_ORIGINS",
-        "http://localhost:3000",
-        "https://swapnild007.github.io",
+        "http://localhost:3000,https://swapnild007.github.io",
     ).split(",")
     if value.strip()
 ]
