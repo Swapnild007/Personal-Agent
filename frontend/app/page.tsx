@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
+import { FitAddon } from "xterm-addon-fit";
+import { Terminal } from "xterm";
 
 type TreeNode = {
   name: string;
@@ -41,11 +43,40 @@ export default function Workspace() {
   const [connected, setConnected] = useState(false);
   const [busy, setBusy] = useState(false);
   const [approval, setApproval] = useState<EventItem | null>(null);
+  const terminalRef = useRef<HTMLDivElement | null>(null);
+  const terminalInstance = useRef<Terminal | null>(null);
 
   const files = useMemo(() => (tree ? flatten(tree) : []), [tree]);
 
   useEffect(() => {
     void loadTree();
+  }, []);
+
+  useEffect(() => {
+    if (!terminalRef.current || terminalInstance.current) return;
+
+    const terminal = new Terminal({
+      convertEol: true,
+      cursorBlink: true,
+      fontSize: 12,
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+      theme: { background: "#080c14", foreground: "#b9c6dc", cursor: "#6475ff" },
+      scrollback: 3000,
+    });
+    const fit = new FitAddon();
+    terminal.loadAddon(fit);
+    terminal.open(terminalRef.current);
+    fit.fit();
+    terminal.writeln("\x1b[90mRADHA terminal ready. Command output will stream here.\x1b[0m");
+    terminalInstance.current = terminal;
+
+    const resize = () => fit.fit();
+    window.addEventListener("resize", resize);
+    return () => {
+      window.removeEventListener("resize", resize);
+      terminal.dispose();
+      terminalInstance.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -60,6 +91,14 @@ export default function Workspace() {
     socket.onmessage = (event) => {
       const item = JSON.parse(event.data) as EventItem;
       setEvents((current) => [...current, item]);
+      if (item.type === "tool_output" && terminalInstance.current) {
+        const stream = item.stream === "stderr" ? "\x1b[31m" : "\x1b[37m";
+        terminalInstance.current.write(stream + (item.chunk ?? "") + "\x1b[0m");
+      }
+      if (item.type === "tool_started" && item.tool === "execute_command") {
+        const command = (item.arguments as { command?: string } | undefined)?.command ?? "";
+        terminalInstance.current?.writeln("\r\n\x1b[36m$ " + command + "\x1b[0m");
+      }
       if (item.type === "approval_required") setApproval(item);
       if (item.type === "task_completed" || item.type === "task_failed" || item.type === "task_cancelled") {
         setBusy(false);
@@ -87,6 +126,8 @@ export default function Workspace() {
   async function runTask() {
     if (!prompt.trim() || busy) return;
     setEvents([]);
+    terminalInstance.current?.clear();
+    terminalInstance.current?.writeln("\x1b[90mStarting RADHA task…\x1b[0m");
     setApproval(null);
     setBusy(true);
 
@@ -180,6 +221,7 @@ export default function Workspace() {
             <span>{selected || "RADHA EDITOR"}</span>
             <span className="muted">{selected ? "READ VIEW" : "NO FILE SELECTED"}</span>
           </div>
+          <div className="monaco-host">
           <Editor
             height="100%"
             theme="vs-dark"
@@ -194,6 +236,14 @@ export default function Workspace() {
               scrollBeyondLastLine: false,
             }}
           />
+          </div>
+          <section className="terminal-panel">
+            <div className="terminal-head">
+              <span>TERMINAL STREAM</span>
+              <span className="muted">LIVE STDOUT / STDERR</span>
+            </div>
+            <div ref={terminalRef} className="terminal-host" />
+          </section>
         </section>
 
         <aside className="panel intelligence">
