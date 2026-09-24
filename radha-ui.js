@@ -1,73 +1,89 @@
 const API=localStorage.getItem("radhaApi")||"";
-const prompt=document.getElementById("prompt"),run=document.getElementById("run"),cancel=document.getElementById("cancel"),overlay=document.getElementById("overlay"),overlayState=document.getElementById("overlayState"),overlayText=document.getElementById("overlayText"),progress=document.getElementById("progress"),missionState=document.getElementById("missionState"),trace=document.getElementById("trace"),timer=document.getElementById("timer"),history=document.getElementById("history"),resultTitle=document.getElementById("resultTitle"),resultBody=document.getElementById("resultBody"),resultDot=document.getElementById("resultDot"),connectionText=document.getElementById("connectionText");
-let running=false,started=0,timerId=null,ws=null,historyItems=JSON.parse(localStorage.getItem("radhaHistory")||"[]");
+let missions=JSON.parse(localStorage.getItem("radhaMissions")||"[]");
+let running=false,started=0,timerId=null,ws=null;
 
-if(API)connectionText.textContent="BACKEND CONFIGURED";
-renderHistory();
+const $=id=>document.getElementById(id);
+const prompt=$("prompt"),run=$("run"),modal=$("missionModal"),cancel=$("cancel"),modalState=$("modalState"),modalText=$("modalText"),progress=$("progress"),missionState=$("coreState"),runtimeStatus=$("runtimeStatus"),connectionText=$("connectionText"),missionBoard=$("missionBoard"),missionList=$("missionList"),activityFeed=$("activityFeed"),missionBadge=$("missionBadge");
 
-function addLog(title,detail){
- trace.querySelector(".empty")?.remove();
- const row=document.createElement("div");row.className="live-line";
- row.innerHTML="<i></i><span><b>"+title+"</b> · "+detail+"</span>";
- trace.appendChild(row);trace.scrollTop=trace.scrollHeight;
+if(API){connectionText.textContent="BACKEND";runtimeStatus.textContent="Backend configured"}
+
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function setView(id){
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+ document.querySelectorAll("[data-view]").forEach(v=>v.classList.toggle("active",v.dataset.view===id));
+ window.scrollTo({top:0,behavior:"smooth"});
 }
-function stage(name){
- const names=["understand","inspect","build","verify","report"],idx=names.indexOf(name);
- document.querySelectorAll(".stage").forEach((el,i)=>{el.classList.toggle("active",i===idx);el.querySelector("i").style.background=i<idx?"#67ddb5":"";el.querySelector("i").style.borderColor=i<idx?"#67ddb5":""});
+document.querySelectorAll("[data-view]").forEach(el=>el.addEventListener("click",()=>setView(el.dataset.view)));
+document.querySelectorAll("[data-template]").forEach(el=>el.addEventListener("click",()=>{prompt.value=el.dataset.template;setView("overview");prompt.focus()}));
+$("newMission").onclick=()=>{setView("overview");prompt.focus()};
+$("newMission2").onclick=()=>{setView("overview");prompt.focus()};
+$("closeModal").onclick=()=>modal.hidden=true;
+$("minimize").onclick=()=>modal.hidden=true;
+
+function updateMissionBoard(){
+ missionBadge.textContent=missions.length;
+ if(!missions.length){missionBoard.innerHTML='<div class="empty-board"><div class="empty-core">R</div><b>No active missions</b><span>Start a mission and RADHA will work here.</span></div>';return}
+ missionBoard.innerHTML=missions.slice(0,4).map(m=>'<div class="event-row"><i></i><div><b>'+escapeHtml(m.request)+'</b><small>'+escapeHtml(m.result)+'</small></div><time>'+escapeHtml(m.time)+'</time></div>').join("");
+ missionList.innerHTML=missions.length?missions.map(m=>'<div class="event-row"><i></i><div><b>'+escapeHtml(m.request)+'</b><small>'+escapeHtml(m.result)+'</small></div><time>'+escapeHtml(m.time)+'</time></div>').join(""):'<div class="empty-state">No missions yet.</div>';
 }
-function elapsed(){timer.textContent=new Date((Date.now()-started)).toISOString().slice(14,19)}
-function renderHistory(){
- if(!historyItems.length)return;
- history.innerHTML=historyItems.slice(0,5).map(x=>'<div class="history-row"><i></i><div><b>'+escapeHtml(x.request)+'</b><small>'+x.result+'</small></div><time>'+x.time+'</time></div>').join("");
+updateMissionBoard();
+
+function addActivity(title,detail){
+ if(activityFeed.querySelector(".empty-state"))activityFeed.innerHTML="";
+ const row=document.createElement("div");row.className="event-row";
+ row.innerHTML='<i></i><div><b>'+escapeHtml(title)+'</b><small>'+escapeHtml(detail)+'</small></div><time>'+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})+'</time>';
+ row.onclick=()=>{$("eventTitle").textContent=title;$("eventDetail").textContent=detail};
+ activityFeed.prepend(row);
 }
-function escapeHtml(v){return v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function setStage(stage){
+ const map={planning:"understand",executing:"build",verifying:"verify",completed:"report",failed:"report",cancelled:"report"};
+ document.querySelectorAll(".stage").forEach(()=>{});
+ modalState.textContent=stage.replaceAll("_"," ").toUpperCase();
+}
+function showModal(){
+ modal.hidden=false;progress.style.width="5%";modalState.textContent="UNDERSTANDING REQUEST";modalText.textContent="RADHA is turning the outcome into an execution plan.";
+}
 function finish(state,result){
- running=false;run.disabled=false;cancel.disabled=true;prompt.disabled=false;
- clearInterval(timerId);timerId=null;missionState.textContent=state;overlay.hidden=true;resultTitle.textContent=result.title;resultDot.classList.toggle("done",state==="COMPLETED");
- resultBody.innerHTML='<div class="result-summary"><div class="metric"><label>OUTCOME</label><b>'+escapeHtml(result.title)+'</b><p>'+escapeHtml(result.detail)+'</p></div><div class="metric"><label>EXECUTION</label><b>'+escapeHtml(result.execution)+'</b><p>RADHA completed the autonomous workflow.</p></div></div>';
- if(state==="COMPLETED")stage("report");
- historyItems.unshift({request:prompt.value.trim(),result:result.title,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})});
- historyItems=historyItems.slice(0,5);localStorage.setItem("radhaHistory",JSON.stringify(historyItems));renderHistory();
+ running=false;run.disabled=false;clearInterval(timerId);timerId=null;modal.hidden=true;missionState.textContent=state;addActivity("MISSION "+state,result);
+ missions.unshift({request:prompt.value.trim(),result,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})});missions=missions.slice(0,20);localStorage.setItem("radhaMissions",JSON.stringify(missions));updateMissionBoard();
 }
 async function realTask(request){
  const response=await fetch(API+"/tasks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request})});
- if(!response.ok)throw new Error("Task creation failed");
- const data=await response.json();ws=new WebSocket(API.replace(/^http/,"ws")+"/ws/tasks/"+data.task_id);
- ws.onmessage=e=>{const item=JSON.parse(e.data);
-   if(item.type==="state_changed"){const s=item.state||"";missionState.textContent=s.replaceAll("_"," ").toUpperCase();overlayState.textContent=s.replaceAll("_"," ").toUpperCase();overlayText.textContent="RADHA is executing the autonomous workflow.";stage(s==="planning"?"understand":s==="executing"?"build":s==="verifying"?"verify":s==="completed"?"report":"inspect");}
-   if(item.type==="tool_started")addLog("TOOL",item.tool||"execution");
-   if(item.type==="tool_output")addLog(item.stream==="stderr"?"STDERR":"STDOUT",(item.chunk||"").trim().slice(0,180));
-   if(item.type==="file_changed")addLog("CHANGED",item.path||"file");
-   if(item.type==="task_completed")finish("COMPLETED",{title:"Mission verified",detail:"RADHA completed the task and reported success.",execution:"Backend agent execution"});
-   if(item.type==="task_failed")finish("FAILED",{title:"Mission stopped",detail:item.error||"RADHA reported an execution failure.",execution:"Backend agent execution"});
+ if(!response.ok)throw new Error("backend task rejected");
+ const data=await response.json();
+ ws=new WebSocket(API.replace(/^http/,"ws")+"/ws/tasks/"+data.task_id);
+ ws.onmessage=e=>{
+   const item=JSON.parse(e.data);
+   if(item.type==="state_changed"){setStage(item.state||"");missionState.textContent=(item.state||"").replaceAll("_"," ").toUpperCase();modalText.textContent="RADHA is executing the autonomous workflow.";addActivity("STATE",(item.state||"").replaceAll("_"," "))}
+   if(item.type==="tool_started")addActivity("TOOL STARTED",item.tool||"");
+   if(item.type==="file_changed")addActivity("FILE CHANGED",item.path||"");
+   if(item.type==="tool_output")addActivity(item.stream==="stderr"?"STDERR":"STDOUT",(item.chunk||"").trim().slice(0,220));
+   if(item.type==="task_completed")finish("COMPLETED","Backend agent verified the mission.");
+   if(item.type==="task_failed")finish("FAILED",item.error||"Backend agent reported failure.");
  };
- ws.onclose=()=>{if(running&&missionState.textContent!=="COMPLETED")finish("STOPPED",{title:"Connection closed",detail:"The agent connection ended before the mission completed.",execution:"Backend connection"})};
+ ws.onclose=()=>{if(running)finish("STOPPED","Agent connection closed before completion.")};
 }
-async function demoTask(){
+async function demo(){
  const steps=[
-  ["understand","UNDERSTANDING REQUEST","Turning your outcome into an execution plan.",12,"PLAN","define objective"],
-  ["inspect","INSPECTING PROJECT","Reading the project structure and relevant files.",32,"INSPECT","find relevant context"],
-  ["build","BUILDING","Applying the required code changes and executing tools.",57,"PATCH","modify source"],
-  ["verify","VERIFYING","Running tests and checking the resulting behavior.",79,"TEST","validate result"],
-  ["report","REPORTING","Summarizing changes and verification evidence.",94,"REPORT","prepare result"]
+  ["UNDERSTANDING REQUEST","RADHA is forming a plan from the desired outcome.",14,"PLAN","Define objective and constraints"],
+  ["INSPECTING CONTEXT","RADHA is locating the relevant project files and evidence.",34,"INSPECT","Explore workspace"],
+  ["EXECUTING","RADHA is selecting tools and applying changes.",56,"TOOL","Read / patch / execute"],
+  ["VERIFYING","RADHA is testing the result and checking failures.",78,"VERIFY","Run validation"],
+  ["REPORTING","RADHA is preparing the evidence-backed result.",94,"REPORT","Summarize outcome"]
  ];
- for(const [s,title,text,pct,logTitle,detail] of steps){
-   if(!running)return;stage(s);missionState.textContent=title;overlayState.textContent=title;overlayText.textContent=text;progress.style.width=pct+"%";addLog(logTitle,detail);
-   await new Promise(r=>setTimeout(r,850));
- }
- if(running){progress.style.width="100%";addLog("DONE","mission verified");finish("COMPLETED",{title:"Mission verified",detail:"Demo workflow completed. Connect the backend to let RADHA execute against a real workspace.",execution:"Agent simulation · UI ready"});}
+ for(const [state,text,pct,title,detail] of steps){if(!running)return;modalState.textContent=state;modalText.textContent=text;progress.style.width=pct+"%";missionState.textContent=state;addActivity(title,detail);await new Promise(r=>setTimeout(r,850))}
+ if(running){progress.style.width="100%";finish("COMPLETED","Demo mission completed. Connect the backend for real autonomous execution.");}
 }
 async function start(){
  if(running||!prompt.value.trim())return;
- running=true;started=Date.now();timerId=setInterval(elapsed,1000);run.disabled=true;cancel.disabled=false;prompt.disabled=true;
- trace.innerHTML="";resultTitle.textContent="RADHA is working";resultDot.classList.remove("done");overlay.hidden=false;progress.style.width="4%";stage("understand");missionState.textContent="UNDERSTANDING";
- addLog("MISSION",prompt.value.trim());
- if(API){try{await realTask(prompt.value.trim());return}catch(e){addLog("BACKEND","Unavailable. Running visual demo instead.");}}
- await demoTask();
+ running=true;started=Date.now();run.disabled=true;missionState.textContent="RUNNING";showModal();addActivity("MISSION STARTED",prompt.value.trim());
+ if(API){try{await realTask(prompt.value.trim());return}catch(e){addActivity("BACKEND","Connection failed; starting interactive demo.")}}
+ await demo();
 }
 run.onclick=start;
-cancel.onclick=()=>{if(ws)ws.close();finish("CANCELLED",{title:"Mission cancelled",detail:"You stopped RADHA before completion.",execution:"User cancellation"});};
+cancel.onclick=()=>{if(ws)ws.close();finish("CANCELLED","Mission cancelled by user.")};
 prompt.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();start()}});
-document.getElementById("minimize").onclick=()=>overlay.hidden=true;
-document.getElementById("homeBtn").onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
-document.getElementById("settingsBtn").onclick=()=>alert("RADHA settings will be connected to the agent runtime in the next backend integration step.");
+document.querySelectorAll(".toggle").forEach(t=>t.onclick=()=>t.classList.toggle("on"));
+$("apiInput").value=API;
+$("saveSettings").onclick=()=>{localStorage.setItem("radhaApi",$("apiInput").value.trim().replace(/\/$/,""));location.reload()};
+setInterval(()=>{if(running){const sec=Math.floor((Date.now()-started)/1000);document.querySelector(".live-pill").lastElementChild.textContent="RUNNING "+String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")}},1000);
