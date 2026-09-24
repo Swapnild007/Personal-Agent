@@ -1,1 +1,14 @@
-const toast=document.querySelector("#toast");let timer;function show(message){toast.textContent=message;toast.classList.add("show");clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove("show"),1600)}document.querySelectorAll(".feature").forEach(b=>b.addEventListener("click",()=>show(b.dataset.mode+" mode is ready.")));document.querySelectorAll(".recent-card").forEach(b=>b.addEventListener("click",()=>show("Opening "+b.querySelector("b").textContent+" with Veyra.")));document.querySelector("#start").addEventListener("click",()=>show("Veyra is listening."));document.querySelector("#core-nav").addEventListener("click",()=>show("Veyra core is active."));document.querySelector("#chat-nav").addEventListener("click",()=>show("Chat space is ready."));document.querySelector("#control-nav").addEventListener("click",()=>show("Control center is ready."));
+const toast=document.querySelector("#toast");
+let timer;
+function show(message){toast.textContent=message;toast.classList.add("show");clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove("show"),1600)}
+const intro=document.querySelector("#welcome-screen");
+const enter=()=>{intro.classList.add("hide");document.body.classList.add("intro-complete");setTimeout(()=>intro.remove(),700)};
+document.querySelector("#enter-button").addEventListener("click",enter);
+document.querySelector("#skip-button").addEventListener("click",enter);
+setTimeout(()=>{if(intro&&!intro.classList.contains("hide"))enter()},5200);
+document.querySelectorAll(".feature").forEach(b=>b.addEventListener("click",()=>show(b.dataset.mode+" mode is ready.")));
+document.querySelectorAll(".recent-card").forEach(b=>b.addEventListener("click",()=>show("Opening "+b.querySelector("b").textContent+" with Veyra.")));
+document.querySelector("#start").addEventListener("click",()=>show("Veyra is listening."));
+document.querySelector("#core-nav").addEventListener("click",()=>show("Veyra core is active."));
+document.querySelector("#chat-nav").addEventListener("click",()=>show("Chat space is ready."));
+document.querySelector("#control-nav").addEventListener("click",()=>show("Control center is ready."));

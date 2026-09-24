@@ -1,1 +1,66 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#03121a"><title>Veyra • Personal-Agent</title><link rel="stylesheet" href="styles-v2.css"></head><body><div class="ambient a1"></div><div class="ambient a2"></div><div class="app"><header class="topbar glass"><a class="identity" href="#"><span class="bot-mini"><i></i><b></b></span><span><strong>Veyra</strong><small>PERSONAL INTELLIGENCE</small></span></a><button class="credits">✦ CORE <b>01</b></button></header><main><section class="welcome"><div class="welcome-copy"><span class="overline">YOUR PERSONAL AI</span><h1>Good morning.<br><em>I'm Veyra.</em></h1><p>Think with me. Build with me.<br>Learn something new with me.</p></div><div class="bot-stage"><div class="bot-glow"></div><div class="bot"><div class="antenna"><i></i></div><div class="head"><div class="ear left"></div><div class="ear right"></div><div class="visor"><span></span><span></span><i>⌣</i></div></div><div class="neck"></div><div class="body"><div class="chest"></div><div class="arm arm-left"></div><div class="arm arm-right"></div></div></div></div></section><section class="core-card glass"><div><span class="eyebrow"><i></i> VEYRA CORE</span><h2>Ready for<br>what's next.</h2><p>One agent. Your context. Everything you want to accomplish.</p><button class="primary" id="start">Talk to Veyra <span>↗</span></button></div><div class="card-bot"></div></section><div class="section-title"><span>CAPABILITIES</span><b>3 CORE MODES</b></div><section class="features"><button class="feature" data-mode="General"><span class="feature-icon">✦</span><b>General</b><small>Ask · research · plan</small><em>→</em></button><button class="feature" data-mode="Coding"><span class="feature-icon">&lt;/&gt;</span><b>Coding</b><small>Build · debug · review</small><em>→</em></button><button class="feature tutor" data-mode="Tutor"><span class="feature-icon">✧</span><b>Tutor</b><small>Learn · practice · assess</small><em>→</em></button></section><div class="section-title"><span>RECENTLY USED</span><b>VIEW ALL</b></div><section class="recent"><button class="recent-card"><span>⌁</span><b>Research</b><small>Explore a topic</small></button><button class="recent-card"><span>⌘</span><b>Build</b><small>Work on code</small></button><button class="recent-card"><span>◇</span><b>Learn</b><small>Start a lesson</small></button><button class="recent-card"><span>◉</span><b>Voice</b><small>Talk to Veyra</small></button></section></main><nav class="bottom-nav glass"><button class="active">⌂<small>Home</small></button><button id="chat-nav">◌<small>Chat</small></button><button class="nav-core" id="core-nav">＋</button><button>◫<small>Memory</small></button><button id="control-nav">⌁<small>Control</small></button></nav><footer>VEYRA • PERSONAL-AGENT</footer></div><div class="toast" id="toast">Veyra is ready.</div><script src="app.js?v=2"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121a">
+<title>Veyra • Personal-Agent</title>
+<link rel="stylesheet" href="styles-v2.css?v=3">
+</head>
+<body>
+<div class="welcome-screen" id="welcome-screen">
+  <div class="welcome-orb orb-one"></div><div class="welcome-orb orb-two"></div>
+  <div class="welcome-content">
+    <div class="welcome-brand"><span class="bot-mini"><i></i><b></b></span><span>VEYRA</span></div>
+    <div class="hero-bot-wrap">
+      <div class="hero-ring ring-one"></div><div class="hero-ring ring-two"></div><div class="hero-glow"></div>
+      <div class="bot hero-bot">
+        <div class="antenna"><i></i></div>
+        <div class="head"><div class="ear left"></div><div class="ear right"></div><div class="visor"><span></span><span></span><i>⌣</i></div></div>
+        <div class="neck"></div>
+        <div class="body"><div class="chest"></div><div class="arm arm-left"></div><div class="arm arm-right"></div></div>
+      </div>
+    </div>
+    <span class="welcome-overline">PERSONAL INTELLIGENCE</span>
+    <h1>Meet <em>Veyra.</em></h1>
+    <p>Your personal AI companion for thinking, building and learning.</p>
+    <button class="enter-button" id="enter-button">Enter Veyra <span>↗</span></button>
+    <button class="skip-button" id="skip-button">Skip intro</button>
+  </div>
+</div>
+
+<div class="ambient a1"></div><div class="ambient a2"></div>
+<div class="app" id="app">
+<header class="topbar glass">
+  <a class="identity" href="#"><span class="bot-mini"><i></i><b></b></span><span><strong>Veyra</strong><small>PERSONAL INTELLIGENCE</small></span></a>
+  <button class="credits">✦ CORE <b>01</b></button>
+</header>
+<main>
+<section class="welcome">
+  <div class="welcome-copy"><span class="overline">YOUR PERSONAL AI</span><h1>Good morning.<br><em>I'm Veyra.</em></h1><p>Think with me. Build with me.<br>Learn something new with me.</p></div>
+  <div class="bot-stage"><div class="bot-glow"></div>
+    <div class="bot landing-bot"><div class="antenna"><i></i></div><div class="head"><div class="ear left"></div><div class="ear right"></div><div class="visor"><span></span><span></span><i>⌣</i></div></div><div class="neck"></div><div class="body"><div class="chest"></div><div class="arm arm-left"></div><div class="arm arm-right"></div></div></div>
+  </div>
+</section>
+<section class="core-card glass"><div><span class="eyebrow"><i></i> VEYRA CORE</span><h2>Ready for<br>what's next.</h2><p>One agent. Your context. Everything you want to accomplish.</p><button class="primary" id="start">Talk to Veyra <span>↗</span></button></div><div class="card-bot"></div></section>
+<div class="section-title"><span>CAPABILITIES</span><b>3 CORE MODES</b></div>
+<section class="features">
+<button class="feature" data-mode="General"><span class="feature-icon">✦</span><b>General</b><small>Ask · research · plan</small><em>→</em></button>
+<button class="feature" data-mode="Coding"><span class="feature-icon">&lt;/&gt;</span><b>Coding</b><small>Build · debug · review</small><em>→</em></button>
+<button class="feature tutor" data-mode="Tutor"><span class="feature-icon">✧</span><b>Tutor</b><small>Learn · practice · assess</small><em>→</em></button>
+</section>
+<div class="section-title"><span>RECENTLY USED</span><b>VIEW ALL</b></div>
+<section class="recent">
+<button class="recent-card"><span>⌁</span><b>Research</b><small>Explore a topic</small></button>
+<button class="recent-card"><span>⌘</span><b>Build</b><small>Work on code</small></button>
+<button class="recent-card"><span>◇</span><b>Learn</b><small>Start a lesson</small></button>
+<button class="recent-card"><span>◉</span><b>Voice</b><small>Talk to Veyra</small></button>
+</section>
+</main>
+<nav class="bottom-nav glass"><button class="active">⌂<small>Home</small></button><button id="chat-nav">◌<small>Chat</small></button><button class="nav-core" id="core-nav">＋</button><button>◫<small>Memory</small></button><button id="control-nav">⌁<small>Control</small></button></nav>
+<footer>VEYRA • PERSONAL-AGENT</footer>
+</div>
+<div class="toast" id="toast">Veyra is ready.</div>
+<script src="app.js?v=3"></script>
+</body>
+</html>
