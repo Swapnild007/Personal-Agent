@@ -173,6 +173,21 @@ class RadhaEngine:
                         }
                     )
 
+                    if (
+                        name in {"write_file", "patch_file"}
+                        and result.get("status") in {"written", "patched"}
+                        and result.get("path")
+                    ):
+                        await self.runtime.event(
+                            task,
+                            "file_changed",
+                            path=result["path"],
+                            action=result["status"],
+                            before_sha256=result.get("before_sha256"),
+                            sha256=result.get("sha256"),
+                            round=round_number,
+                        )
+
                     await self.runtime.event(
                         task,
                         "tool_finished",
