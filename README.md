@@ -1,82 +1,84 @@
-# Personal-Agent
+# RADHA Personal-Agent
 
 A single-user personal AI agent built from scratch.
 
-## V1 goals
+## Actual agent count
 
-- Cloud LLM only. No model weights stored on the device.
-- Provider-agnostic OpenAI-compatible model API.
-- Stateful conversations.
-- Long-term memory with SQLite.
-- Explicit tool registry.
-- Web research tool.
-- Human approval boundary for future side-effect tools.
-- FastAPI API for a mobile/web client.
-- Simple local development with Python.
+One AI agent: Radha.
 
-## Architecture
+Radha is not three separate agents. The product has one orchestrator, one shared memory store, and three operating modes:
 
-```
-Client
-  |
-  v
-FastAPI
-  |
-  v
-Agent Orchestrator
-  |------> Cloud LLM
-  |------> Tool Registry
-  |          |--> Web
-  |          |--> Memory
-  |          |--> Future GitHub / Browser / Files
-  |
-  v
-SQLite
-```
+1. General: everyday questions, research, planning and writing.
+2. Coding: code generation, debugging, review and testing.
+3. Tutor: adaptive teaching, exercises and assessment.
 
-The design deliberately starts small. Tools are explicit and auditable rather than giving the model unrestricted shell access.
+Changing mode changes the operating instructions. It does not create another model, memory store, or agent.
+
+## Current backend
+
+- FastAPI
+- Cloud LLM only
+- OpenAI-compatible chat completions endpoint
+- SQLite long-term memory
+- Explicit tool registry
+- remember, recall and web_fetch tools
+- Bounded tool-call loop
+- No unrestricted shell access
+- No model weights on the device
+
+The GitHub Pages UI is a client-side prototype. Real cloud-agent conversations require the Python backend to be deployed and configured with LLM_API_KEY and LLM_MODEL.
+
+## UI
+
+RADHA is a mobile-first AI companion interface based on the supplied reference composition:
+
+- RADHA female companion identity
+- Splash / welcome screen
+- Home screen
+- Premium feature cards
+- Recently used cards
+- Speech-to-text interaction
+- Fixed mobile navigation
+- Responsive desktop shell
+- CSS-rendered animated companion
+- Reference screenshots are not embedded in the project
+
+Figma design:
+https://www.figma.com/design/sQ4Ex7iJZmeqQrpb2Ksj7F
 
 ## Setup
 
-```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-```
 
-Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` in `.env`.
+Set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL, DATABASE_PATH and MAX_TOOL_ROUNDS.
 
 Run:
-
-```bash
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
-```
 
-Health check:
-
-```
+Health:
 GET /health
-```
 
 Chat:
+POST /chat with message, conversation_id and mode.
 
-```
-POST /chat
-{
-  "message": "Remember that my project is called Personal-Agent.",
-  "conversation_id": "demo"
-}
-```
+## Architecture
+
+RADHA -> Agent Orchestrator -> Cloud LLM
+                         -> Tool Registry -> Memory
+                                         -> Web fetch
+                         -> SQLite
+
+Modes: General / Coding / Tutor
 
 ## Roadmap
 
-1. Core agent + memory
-2. Tool calling
-3. Browser automation
-4. GitHub actions
-5. File intelligence
-6. Scheduled/proactive agent
-7. Mobile-first UI
-8. Approval and audit system
-9. Evaluation suite
+1. Connect the RADHA UI to the API
+2. Browser automation
+3. GitHub tools
+4. File intelligence
+5. Scheduled/proactive tasks
+6. Approval and audit system
+7. Evaluation suite
