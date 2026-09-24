@@ -43,6 +43,8 @@ def test_write_and_read_round_trip(tmp_path: Path) -> None:
     read = tools.read_file("src/example.py")
 
     assert written["status"] == "written"
+    assert written["before_sha256"] is None
+    assert written["sha256"] == read["sha256"]
     assert read["content"] == "print('hello')\n"
 
 
