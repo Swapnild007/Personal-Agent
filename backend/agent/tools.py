@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from config import (
     COMMAND_TIMEOUT_SECONDS,
@@ -368,6 +368,99 @@ class ToolRegistry:
             "path": self.workspace.relative(file_path),
             "status": "patched",
             "replacements": 1,
+        }
+
+    async def execute_command_streaming(
+        self,
+        command: str,
+        *,
+        approved: bool = False,
+        on_output: Callable[[str, str], Awaitable[None]] | None = None,
+    ) -> dict[str, Any]:
+        approval = self.policy.inspect(command)
+        if approval and not approved:
+            return {
+                "status": "approval_required",
+                "action": approval.action,
+                "reason": approval.reason,
+                "command": command,
+            }
+
+        argv = shlex.split(command, posix=os.name != "nt")
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *argv,
+                cwd=self.workspace.root,
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=self._safe_env(),
+            )
+        except OSError as exc:
+            return {"status": "error", "error": str(exc)}
+
+        output: dict[str, list[str]] = {"stdout": [], "stderr": []}
+        output_bytes = {"stdout": 0, "stderr": 0}
+
+        async def read_stream(
+            stream_name: str,
+            stream: asyncio.StreamReader | None,
+        ) -> None:
+            if stream is None:
+                return
+
+            while True:
+                chunk = await stream.read(4096)
+                if not chunk:
+                    break
+
+                text = chunk.decode("utf-8", errors="replace")
+                if output_bytes[stream_name] < MAX_COMMAND_OUTPUT_BYTES:
+                    remaining = MAX_COMMAND_OUTPUT_BYTES - output_bytes[stream_name]
+                    encoded = text.encode("utf-8", errors="replace")
+                    if len(encoded) > remaining:
+                        text = encoded[:remaining].decode("utf-8", errors="ignore")
+                    output[stream_name].append(text)
+                    output_bytes[stream_name] += len(text.encode("utf-8", errors="replace"))
+
+                if on_output is not None and text:
+                    await on_output(stream_name, text)
+
+        readers = [
+            asyncio.create_task(read_stream("stdout", process.stdout)),
+            asyncio.create_task(read_stream("stderr", process.stderr)),
+        ]
+
+        timed_out = False
+        try:
+            await asyncio.wait_for(process.wait(), timeout=COMMAND_TIMEOUT_SECONDS)
+        except asyncio.TimeoutError:
+            timed_out = True
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), timeout=2)
+            except asyncio.TimeoutError:
+                process.kill()
+                await process.wait()
+        finally:
+            await asyncio.gather(*readers, return_exceptions=True)
+
+        stdout = "".join(output["stdout"])
+        stderr = "".join(output["stderr"])
+
+        if timed_out:
+            return {
+                "status": "timeout",
+                "timeout_seconds": COMMAND_TIMEOUT_SECONDS,
+                "stdout": self._clip(stdout),
+                "stderr": self._clip(stderr),
+            }
+
+        return {
+            "status": "completed" if process.returncode == 0 else "failed",
+            "exit_code": process.returncode,
+            "stdout": self._clip(stdout),
+            "stderr": self._clip(stderr),
         }
 
     def execute_command(
