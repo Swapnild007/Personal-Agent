@@ -466,3 +466,25 @@ button {
     min-height: 190px;
   }
 }
+
+
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.editor-controls button {
+  border: 1px solid #29334a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: #111724;
+  color: #9eacc4;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.editor-controls button:hover {
+  border-color: #5968d9;
+  color: #e7edff;
+}
