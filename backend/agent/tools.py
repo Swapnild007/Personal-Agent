@@ -432,7 +432,6 @@ class ToolRegistry:
         ]
 
         timed_out = False
-        cancelled = False
         try:
             await asyncio.wait_for(process.wait(), timeout=COMMAND_TIMEOUT_SECONDS)
         except asyncio.TimeoutError:
@@ -444,7 +443,6 @@ class ToolRegistry:
                 process.kill()
                 await process.wait()
         except asyncio.CancelledError:
-            cancelled = True
             process.terminate()
             try:
                 await asyncio.wait_for(process.wait(), timeout=2)
@@ -454,9 +452,6 @@ class ToolRegistry:
             raise
         finally:
             await asyncio.gather(*readers, return_exceptions=True)
-
-        if cancelled:
-            raise asyncio.CancelledError
 
         stdout = "".join(output["stdout"])
         stderr = "".join(output["stderr"])
