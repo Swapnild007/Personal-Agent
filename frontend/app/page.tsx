@@ -58,6 +58,7 @@ export default function Workspace() {
 
     let disposed = false;
     let terminal: import("xterm").Terminal | null = null;
+    let cleanupResize: (() => void) | undefined;
 
     async function mountTerminal() {
       const [{ Terminal }, { FitAddon }] = await Promise.all([
@@ -83,13 +84,14 @@ export default function Workspace() {
 
       const resize = () => fit.fit();
       window.addEventListener("resize", resize);
-      return () => window.removeEventListener("resize", resize);
+      cleanupResize = () => window.removeEventListener("resize", resize);
     }
 
     void mountTerminal();
 
     return () => {
       disposed = true;
+      cleanupResize?.();
       terminal?.dispose();
       terminalInstance.current = null;
     };
