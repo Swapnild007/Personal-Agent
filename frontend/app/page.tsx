@@ -123,6 +123,7 @@ export default function Workspace() {
       if (item.type === "task_completed" || item.type === "task_failed" || item.type === "task_cancelled") {
         setBusy(false);
         void loadTree();
+        if (selected) void refreshCurrentFile(selected);
       }
     };
 
@@ -133,6 +134,13 @@ export default function Workspace() {
     const response = await fetch(`${API}/workspace/tree`);
     if (!response.ok) return;
     setTree((await response.json()) as TreeNode);
+  }
+
+  async function refreshCurrentFile(path: string) {
+    const response = await fetch(`${API}/workspace/file?path=${encodeURIComponent(path)}`);
+    if (!response.ok) return;
+    const data = (await response.json()) as { content: string; path: string };
+    setCode(data.content);
   }
 
   async function openFile(path: string) {
