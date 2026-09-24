@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from agent.engine import RadhaEngine
 from agent.tools import ToolRegistry
-from config import CORS_ORIGINS, HOST, OPENAI_API_KEY, PORT, WORKSPACE_ROOT
+from config import CORS_ORIGINS, HOST, OMNIROUTE_BASE_URL, OMNIROUTE_MODEL, PORT, WORKSPACE_ROOT
 
 
 class ConnectionHub:
@@ -59,7 +59,7 @@ running_tasks: dict[str, asyncio.Task[None]] = {}
 async def lifespan(app: FastAPI):
     global engine, engine_error
 
-    if OPENAI_API_KEY:
+    if OMNIROUTE_BASE_URL:
         try:
             engine = RadhaEngine(tools, hub.publish)
             engine_error = None
@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI):
             engine_error = str(exc)
     else:
         engine = None
-        engine_error = "OPENAI_API_KEY is not configured."
+        engine_error = "OMNIROUTE_BASE_URL is not configured."
 
     yield
 
@@ -81,7 +81,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RADHA Agent Runtime",
-    version="0.5.1",
+    version="0.6.0",
     lifespan=lifespan,
 )
 
@@ -110,6 +110,9 @@ async def health() -> dict[str, Any]:
         "runtime": "coding-capability",
         "workspace": str(WORKSPACE_ROOT),
         "model_configured": engine is not None,
+        "model_gateway": "OmniRoute",
+        "model": OMNIROUTE_MODEL,
+        "omniroute_base_url": OMNIROUTE_BASE_URL,
         "running_tasks": len(running_tasks),
     }
 
