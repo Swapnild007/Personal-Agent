@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 
@@ -19,7 +20,7 @@ class ApprovalGate:
     pending: dict[str, asyncio.Future[bool]] = field(default_factory=dict)
 
     def request(self) -> tuple[str, asyncio.Future[bool]]:
-        approval_id = str(__import__("uuid").uuid4())
+        approval_id = str(uuid.uuid4())
         future: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
         self.pending[approval_id] = future
         return approval_id, future
