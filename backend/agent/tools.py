@@ -327,13 +327,21 @@ class ToolRegistry:
             )
 
         file_path = self.workspace.resolve(path)
+        before_sha256 = (
+            hashlib.sha256(file_path.read_bytes()).hexdigest()
+            if file_path.exists() and file_path.is_file()
+            else None
+        )
         file_path.parent.mkdir(parents=True, exist_ok=True)
         self._atomic_write(file_path, content)
+        after_sha256 = hashlib.sha256(file_path.read_bytes()).hexdigest()
 
         return {
             "path": self.workspace.relative(file_path),
             "bytes": file_path.stat().st_size,
             "status": "written",
+            "before_sha256": before_sha256,
+            "sha256": after_sha256,
         }
 
     def patch_file(
@@ -361,15 +369,19 @@ class ToolRegistry:
                 f"Patch is ambiguous: search text occurs {occurrences} times."
             )
 
+        before_sha256 = hashlib.sha256(file_path.read_bytes()).hexdigest()
         updated = current.replace(search, replace, 1)
         if len(updated.encode("utf-8")) > MAX_FILE_BYTES:
             raise ToolExecutionError("Patched file exceeds maximum size.")
 
         self._atomic_write(file_path, updated)
+        after_sha256 = hashlib.sha256(file_path.read_bytes()).hexdigest()
         return {
             "path": self.workspace.relative(file_path),
             "status": "patched",
             "replacements": 1,
+            "before_sha256": before_sha256,
+            "sha256": after_sha256,
         }
 
     async def execute_command_streaming(
