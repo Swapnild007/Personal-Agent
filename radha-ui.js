@@ -1,82 +1,49 @@
-const screens=[...document.querySelectorAll(".screen")],toast=document.querySelector("#toast");let tt;
-const API_KEY="radha_api_base";
-let mode="general",conversationId="radha-"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),apiBase=localStorage.getItem(API_KEY)||"";
-
-const ROUTES={
-  coding:/\b(code|coding|debug|bug|error|exception|python|javascript|typescript|html|css|react|node|sql|api|json|git|github|repo|repository|commit|branch|function|class|variable|script|terminal|docker|deploy|deployment|frontend|backend|database|regex|algorithm|program|programming|compile|compiler|syntax|stack trace|runtime)\b/i,
-  tutor:/\b(teach|learn|lesson|course|quiz|test me|practice|exercise|study|exam|homework|tutorial|beginner|understand|explain simply|explain like|what is|why does|how does|concept|definition|flashcard|assessment)\b/i
+const API=localStorage.getItem("radhaApi")||"";
+const files={
+"app.py":"from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get(\"/health\")\ndef health():\n    return {\"status\": \"ok\"}\n",
+"agent.py":"class Agent:\n    def run(self, request: str) -> str:\n        return request\n",
+"tests/test_agent.py":"def test_health():\n    assert True\n",
+"README.md":"# RADHA\n\nAutonomous software engineering workspace.\n",
+"config.py":"MODEL = \"gpt-4o\"\n"
 };
-function inferMode(text){
-  const value=text.trim();
-  if(ROUTES.coding.test(value)) return "coding";
-  if(ROUTES.tutor.test(value) && !/\b(write|build|fix|debug|code|repo|github|api)\b/i.test(value)) return "tutor";
-  return "general";
+let selected="app.py", original=files[selected], running=false, timer=null, started=0;
+
+const $=id=>document.getElementById(id);
+const editor=$("editor"), terminal=$("terminal"), prompt=$("prompt"), mission=$("mission"), round=$("round"), trace=$("trace"), timeline=$("timeline"), changes=$("changes"), eventCount=$("event-count"), changeCount=$("change-count"), timelineCount=$("timeline-count"), status=$("status"), elapsed=$("elapsed");
+
+function paint(){editor.textContent=files[selected]||"";$("file-title").textContent=selected;document.querySelectorAll(".tree-file").forEach(b=>b.classList.toggle("active",b.dataset.file===selected))}
+function log(type,detail){const row=document.createElement("div");row.className="trace-item";row.innerHTML='<span class="trace-dot"></span><div><strong>'+type+'</strong><small>'+detail+'</small></div>';trace.appendChild(row);trace.scrollTop=trace.scrollHeight;eventCount.textContent=trace.querySelectorAll(".trace-item").length+" events"}
+function phase(name,detail){const item=document.createElement("div");item.className="timeline-item";item.innerHTML='<div class="timeline-rail"><span class="active"></span></div><div class="timeline-copy"><strong>'+name+'</strong><small>'+new Date().toLocaleTimeString([], {hour12:false})+' · '+detail+'</small></div>';timeline.querySelector(".section-empty")?.remove();timeline.appendChild(item);timelineCount.textContent=timeline.querySelectorAll(".timeline-item").length}
+function term(text,kind=""){terminal.textContent+=kind==="cmd"?"\n$ "+text+"\n":text;terminal.scrollTop=terminal.scrollHeight}
+function changed(path,action){if(changes.querySelector(".section-empty")) changes.innerHTML="";const row=document.createElement("div");row.className="changed-file";row.innerHTML='<span class="file-action">'+(action==="patched"?"Δ":"+")+'</span><span>'+path+'</span><small>'+action+'</small>';row.onclick=()=>{selected=path;original=files[path]||"";paint()};changes.appendChild(row);changeCount.textContent=changes.querySelectorAll(".changed-file").length}
+
+document.querySelectorAll(".tree-file").forEach(btn=>btn.onclick=()=>{selected=btn.dataset.file;original=files[selected]||"";paint()});
+$("refresh").onclick=()=>{status.textContent="WORKSPACE REFRESHED";setTimeout(()=>status.textContent=API?"BACKEND CONNECTED":"DEMO READY",900)};
+$("diff").onclick=()=>{const isDiff=$("view-label").textContent==="CHANGE VIEW";if(isDiff){editor.textContent=files[selected]||"";$("view-label").textContent="READ VIEW";return}editor.textContent=original===files[selected]?files[selected]:"--- ORIGINAL ---\n"+original+"\n\n+++ CURRENT ---\n"+files[selected];$("view-label").textContent="CHANGE VIEW"};
+
+async function liveTask(request){
+const res=await fetch(API+"/tasks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request})});
+if(!res.ok)throw new Error(await res.text());
+const data=await res.json();
+const ws=new WebSocket(API.replace(/^http/,"ws")+"/ws/tasks/"+data.task_id);
+ws.onmessage=e=>{const item=JSON.parse(e.data);if(item.type==="state_changed"){mission.textContent=(item.state||"").toUpperCase();round.textContent=item.round?"R"+item.round:"LIVE";phase((item.state||"").toUpperCase(),"backend event")}if(item.type==="tool_started")log("TOOL STARTED",item.tool||"tool");if(item.type==="tool_output")term(item.chunk||"");if(item.type==="file_changed"){changed(item.path,item.action||"changed")}if(item.type==="task_completed"){finish("COMPLETED");log("TASK COMPLETED",item.message||"RADHA finished")}if(item.type==="task_failed"){finish("FAILED");log("TASK FAILED",item.error||"error")}};
+ws.onclose=()=>{if(running&&mission.textContent==="EXECUTING")finish("DISCONNECTED")};
 }
-function toastMsg(m){toast.textContent=m;toast.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove("show"),1700)}
-function navFor(screen){
-  if(screen==="control")return "control";
-  if(screen==="chat")return "chat";
-  return "home";
+
+async function run(){
+if(running||!prompt.value.trim())return;
+running=true;$("run").disabled=true;$("cancel").disabled=false;prompt.disabled=true;trace.innerHTML="";timeline.innerHTML="";changes.innerHTML='<div class="section-empty">No files changed in this task.</div>';changeCount.textContent="0";eventCount.textContent="0";timelineCount.textContent="0";terminal.textContent="";started=Date.now();status.textContent=API?"STREAMING":"DEMO RUN";mission.textContent="PLANNING";round.textContent="R1";phase("PLANNING","understanding request");log("TASK STARTED",prompt.value.trim());
+if(API){try{await liveTask(prompt.value.trim());return}catch(e){log("BACKEND UNAVAILABLE","falling back to UI simulation")}}
+await new Promise(r=>setTimeout(r,650));if(!running)return;mission.textContent="EXECUTING";phase("EXECUTING","inspect project");log("TOOL STARTED","list_directory");term("$ list workspace\napp.py\nagent.py\ntests/test_agent.py\nREADME.md\nconfig.py\n");
+await new Promise(r=>setTimeout(r,700));if(!running)return;log("TOOL STARTED","read_file · tests/test_agent.py");term("$ read tests/test_agent.py\nassert True\n");
+await new Promise(r=>setTimeout(r,800));if(!running)return;phase("EXECUTING","apply safe patch");log("TOOL STARTED","patch_file");files["tests/test_agent.py"]="def test_health():\n    assert True\n\ndef test_radha_agent():\n    assert \"RADHA\" == \"RADHA\"\n";changed("tests/test_agent.py","patched");selected="tests/test_agent.py";paint();term("$ patch_file tests/test_agent.py\npatched 1 replacement\n");
+await new Promise(r=>setTimeout(r,700));if(!running)return;log("TOOL STARTED","execute_command");term("python -m pytest -q","cmd");await new Promise(r=>setTimeout(r,900));if(!running)return;term("2 passed in 0.18s\n");phase("VERIFYING","tests passed");log("VERIFICATION","2 tests passed");await new Promise(r=>setTimeout(r,500));finish("COMPLETED");
 }
-function setNav(active){
-  const buttons=[...document.querySelectorAll(".bottom [data-nav]")];
-  buttons.forEach(b=>b.classList.toggle("active",b.dataset.nav===active));
-  const liquid=document.querySelector(".nav-liquid");
-  if(!liquid)return;
-  const target=buttons.find(b=>b.dataset.nav===active);
-  if(!target || active==="chat"){
-    if(active==="chat"){
-      const chatButton=buttons.find(b=>b.dataset.nav==="chat");
-      const core=buttons.find(b=>b.classList.contains("core"));
-      const x=chatButton?.offsetLeft??0;
-      const w=chatButton?.offsetWidth??0;
-      const cx=core?.offsetLeft??0;
-      const cw=core?.offsetWidth??50;
-      liquid.style.width=Math.max(w,52)+"px";
-      liquid.style.transform="translateX("+(active==="chat" ? (x+Math.max(0,(w-52)/2)) : 0)+"px)";
-      core?.classList.add("active");
-      return;
-    }
-    liquid.style.width="0px";liquid.style.opacity="0";return;
-  }
-  const x=target.offsetLeft;
-  const w=target.offsetWidth;
-  liquid.style.opacity="1";
-  liquid.style.width=Math.max(48,w-4)+"px";
-  liquid.style.transform="translateX("+(x+2)+"px)";
-}
-function go(n){screens.forEach(s=>s.classList.toggle("active",s.dataset.screen===n));setNav(navFor(n));}
-function openChat(){mode="general";setNav("chat");go("chat");setTimeout(()=>document.querySelector("#message")?.focus(),280)}
-document.querySelectorAll("[data-go]").forEach(e=>e.addEventListener("click",()=>{const n=e.dataset.go;if(n==="chat")openChat();else go(n)}));
-document.querySelectorAll("[data-toast]").forEach(e=>e.addEventListener("click",()=>{setNav(e.dataset.nav||"memory");toastMsg(e.dataset.toast)}));
-document.querySelectorAll("[data-mode]").forEach(e=>e.addEventListener("click",()=>{mode=e.dataset.mode;openChat()}));
-document.querySelectorAll("[data-prompt]").forEach(e=>e.addEventListener("click",()=>{document.querySelector("#message").value=e.dataset.prompt;document.querySelector("#message").focus()}));
-const chatMain=document.querySelector("#chat-main"),message=document.querySelector("#message"),composer=document.querySelector("#composer");
-function addMessage(kind,text){const row=document.createElement("div");row.className=kind==="user"?"user-message":"radha-message";if(kind==="user"){row.innerHTML="<div><p></p></div>";row.querySelector("p").textContent=text}else{row.innerHTML='<span class="msg-avatar">••</span><div><small>RADHA</small><p></p></div>';row.querySelector("p").textContent=text}chatMain.appendChild(row);chatMain.scrollTop=chatMain.scrollHeight;return row}
-async function sendMessage(text){
-  if(!text.trim())return;
-  const selectedMode=inferMode(text);
-  mode=selectedMode;
-  addMessage("user",text);message.value="";
-  const thinking=addMessage("radha","Thinking…");const p=thinking.querySelector("p");
-  try{
-    if(!apiBase){p.textContent="I’m in demo mode right now. Open Control and add the deployed Radha API URL to connect the real cloud agent.";return}
-    const response=await fetch(apiBase.replace(/\/$/,"")+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text,conversation_id:conversationId})});
-    if(!response.ok)throw new Error("HTTP "+response.status);
-    const data=await response.json();
-    mode=data.mode||selectedMode;
-    p.textContent=data.answer||"Radha returned no answer.";
-  }catch(err){p.textContent="I couldn’t reach the Radha backend. Check the API URL in Control and make sure the service is running."}
-}
-composer.addEventListener("submit",e=>{e.preventDefault();sendMessage(message.value)});
-message.addEventListener("input",()=>{message.style.height="auto";message.style.height=Math.min(message.scrollHeight,90)+"px"});
-const apiInput=document.querySelector("#api-base"),apiStatus=document.querySelector("#api-status"),apiDot=document.querySelector("#api-dot");
-apiInput.value=apiBase;
-function updateApiStatus(ok,label){apiStatus.textContent=label;apiDot.style.background=ok?"#62f2c1":"#ffbf63";apiDot.style.boxShadow=ok?"0 0 10px #62f2c1":"0 0 10px #ffbf63"}
-async function checkApi(){if(!apiBase){updateApiStatus(false,"Demo mode");return}try{const r=await fetch(apiBase.replace(/\/$/,"")+"/health");const d=await r.json();updateApiStatus(r.ok&&d.agent==="Radha",r.ok&&d.llm_configured?"Connected · Radha online":"Backend reachable · model not configured")}catch{updateApiStatus(false,"Connection unavailable")}}
-document.querySelector("#save-api").addEventListener("click",()=>{apiBase=apiInput.value.trim().replace(/\/$/,"");localStorage.setItem(API_KEY,apiBase);checkApi();toastMsg(apiBase?"Radha connection saved.":"Demo mode restored.")});
-const mic=document.querySelector("#mic"),hint=document.querySelector("#hint"),timer=document.querySelector("#timer");let rec=false,sec=54,iv;
-mic.addEventListener("click",()=>{rec=!rec;if(rec){hint.textContent="Listening… tap again to stop";iv=setInterval(()=>{sec++;timer.textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0")},1000)}else{clearInterval(iv);hint.textContent="Voice note captured by Radha";toastMsg("Voice input captured.")}});
-checkApi();
-setNav("home");
-setTimeout(()=>{if(document.querySelector(".splash.active"))go("home")},6500);
+
+function finish(state){running=false;$("run").disabled=false;$("cancel").disabled=true;prompt.disabled=false;mission.textContent=state;status.textContent=state==="COMPLETED"?"DEMO COMPLETE":"STOPPED";if(state==="COMPLETED"){phase("COMPLETED","task verified")}clearInterval(timer);timer=null}
+$("run").onclick=run;
+$("cancel").onclick=()=>{if(running){term("\nCancellation requested.\n");finish("CANCELLED")}};
+prompt.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();run()}});
+timer=setInterval(()=>{if(started)elapsed.textContent=Math.floor((Date.now()-started)/1000)+"s"},1000);
+paint();
+if(API)status.textContent="BACKEND READY";
