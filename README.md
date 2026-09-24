@@ -1,78 +1,75 @@
-# RADHA Personal-Agent
+# RADHA · Personal Agent
 
-One personal AI agent with three operating modes.
+RADHA (Robust Automated Developer & Heuristic Architect) is a single autonomous coding agent with a browser command-center UI and a FastAPI execution runtime.
 
-## Agent count
+## Current architecture
 
-**1 actual agent: Radha.**
+- Frontend: GitHub Pages static command center (index.html, radha-ui.js, radha-ui.css)
+- Backend: FastAPI in backend/
+- Model gateway: OmniRoute via an OpenAI-compatible /v1/chat/completions endpoint
+- Default routing: auto/coding
+- Agent loop: understand → inspect → act → observe → verify → report
+- Live transport: WebSocket task events
+- Safety: workspace path isolation, shell=False, bounded output, command policy and human approval for destructive/repository-mutating commands
+- Verification gate: after workspace mutation, RADHA cannot mark the task complete until there is successful execution evidence
 
-The product has one orchestrator, one shared memory store and one tool registry.
+## Run locally
 
-Modes:
-- General: research, planning, writing and everyday work
-- Coding: build, debug, review and testing
-- Tutor: teach, practice and assess
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env
+uvicorn main:app --reload
+```
 
-The modes do not create separate agents.
+Default backend: http://127.0.0.1:8000
 
-## Current tools
+Default OmniRoute: http://127.0.0.1:20128/v1
 
-- remember
-- recall
-- web_fetch
+The browser UI stores the backend endpoint in Settings. For GitHub Pages, point that field at a reachable RADHA backend instead of assuming localhost.
 
-The tool loop is bounded. There is no unrestricted shell tool and no model stored on the device.
+## Backend API
 
-## Frontend
-
-The GitHub Pages frontend is a mobile-first RADHA companion UI inspired by the supplied reference screens. It includes:
-
-- Splash / welcome
-- Home
-- General / Coding mode entry
-- Chat with mode selector
-- Speech interaction
-- Control / API connection screen
-- Persistent bottom navigation
-- Animated CSS-rendered Radha companion
-
-The reference screenshots themselves are not shipped as project assets.
-
-## Real API connection
-
-The frontend can connect to a deployed FastAPI backend from the Control screen.
-
-Backend:
 - GET /health
-- GET /memory
-- POST /chat
+- GET /workspace/tree
+- GET /workspace/file?path=...
+- POST /tasks
+- POST /tasks/{task_id}/cancel
+- POST /tasks/{task_id}/approvals/{approval_id}
+- WS /ws/tasks/{task_id}
 
-Configure:
-- LLM_BASE_URL
-- LLM_API_KEY
-- LLM_MODEL
-- DATABASE_PATH
-- MAX_TOOL_ROUNDS
-- CORS_ORIGINS
+## Tests
 
-Example:
+The backend workflow runs:
+
+```bash
+python -m compileall -q agent main.py config.py
+python -m pytest -q
 ```
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+
+Gateway tests use an HTTPX mock transport, so CI validates the OmniRoute request/response contract without requiring a live model provider.
+
+## Security boundary
+
+RADHA is designed for a trusted personal workspace, not hostile multi-tenant execution. Before exposing command execution to untrusted users, move execution into disposable containers or VMs with OS-level CPU, memory, filesystem and network isolation.
+
+## Project structure
+
+```text
+backend/
+  agent/
+    engine.py
+    gateway.py
+    planner.py
+    runtime.py
+    tools.py
+  tests/
+  config.py
+  main.py
+
+index.html
+radha-ui.js
+radha-ui.css
 ```
-
-The UI remains usable in Demo mode when no backend URL is configured.
-
-## Figma
-
-RADHA design file:
-https://www.figma.com/design/sQ4Ex7iJZmeqQrpb2Ksj7F
-
-## Roadmap
-
-1. Deploy the FastAPI service
-2. Connect browser/web research tools
-3. Add GitHub integration
-4. Add file intelligence
-5. Add approval/audit boundaries
-6. Add evaluation tests
-7. Add proactive scheduled tasks
