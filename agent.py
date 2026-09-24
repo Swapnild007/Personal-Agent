@@ -29,7 +29,7 @@ class Agent:
     async def chat(self,conversation_id:str,message:str,mode:str|None=None)->tuple[str,str]:
         mode=mode if mode in self.MODE_GUIDANCE else self.infer_mode(message)
         if not LLM_API_KEY or not LLM_MODEL:
-            return "Radha is ready, but the cloud model is not configured yet. Set LLM_API_KEY and LLM_MODEL in the backend environment."
+            return "Radha is ready, but the cloud model is not configured yet. Set LLM_API_KEY and LLM_MODEL in the backend environment.", mode
         history=self.histories.setdefault(conversation_id,[])
         system_content="You are Radha, a single personal AI agent with one shared identity and shared memory. Current operating mode: "+mode+". "+self.MODE_GUIDANCE[mode]+" Automatically adapt to the user's intent. If the next message clearly belongs to another mode, switch modes silently. Use tools only when useful. Never claim an action was completed unless a tool confirms it."
         if not history:
@@ -45,8 +45,8 @@ class Agent:
                 history.append(choice)
                 calls=choice.get("tool_calls") or []
                 if not calls:
-                    return choice.get("content") or ""
+                    return choice.get("content") or "", mode
                 for call in calls:
                     result=await self.tools.execute_tool_call({"function":{"name":call["function"]["name"],"arguments":call["function"].get("arguments","{}")}})
                     history.append({"role":"tool","tool_call_id":call["id"],"name":call["function"]["name"],"content":json.dumps(result)})
-        return "Radha reached the tool-call limit before producing a final response."
+        return "Radha reached the tool-call limit before producing a final response.", mode
