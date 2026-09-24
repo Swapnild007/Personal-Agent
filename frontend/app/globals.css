@@ -418,3 +418,49 @@ button {
     min-height: 35dvh;
   }
 }
+
+
+.monaco-host {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.terminal-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 34px 1fr;
+  border-top: 1px solid #1a2030;
+  background: #080c14;
+}
+
+.terminal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #151c2a;
+  color: #68758d;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+.terminal-host {
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px 8px;
+}
+
+.terminal-host .xterm {
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .editor-panel {
+    min-height: 70dvh;
+    grid-template-rows: 42px minmax(280px, 1fr) 190px;
+  }
+
+  .terminal-panel {
+    min-height: 190px;
+  }
+}
