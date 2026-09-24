@@ -18,12 +18,15 @@ class Agent:
     def infer_mode(self,message:str)->str:
         import re
         text=message.lower()
-        coding_terms=r"\b(code|coding|debug|bug|error|exception|python|javascript|typescript|html|css|react|node|sql|api|json|git|github|repo|repository|commit|branch|function|class|variable|script|terminal|docker|deploy|deployment|frontend|backend|database|regex|algorithm|program|programming|compile|compiler|syntax|stack trace|runtime)\b"
-        tutor_terms=r"\b(teach|learn|lesson|course|quiz|test me|practice|exercise|study|exam|homework|tutorial|beginner|understand|explain simply|explain like|what is|why does|how does|concept|definition|flashcard|assessment)\b"
+        strong_coding=r"\b(debug|bug|fix|exception|stack trace|syntax error|implement|refactor|function|class|variable|repo|repository|commit|branch|git|github|terminal|docker|deploy|deployment|frontend|backend|database|regex|algorithm|compile|compiler|code review|pull request|pull-request)\b"
+        coding_terms=r"\b(code|coding|python|javascript|typescript|html|css|react|node|sql|api|json|program|programming|script|runtime)\b"
+        tutor_terms=r"(\bteach me\b|\bteach\b|\blearn\b|\blesson\b|\bcourse\b|\bquiz\b|\btest me\b|\bpractice\b|\bexercise\b|\bstudy\b|\bexam\b|\bhomework\b|\btutorial\b|\bbeginner\b|\bhelp me understand\b|\bexplain simply\b|\bexplain like\b|\bwhat is\b|\bwhy does\b|\bhow does\b|\bconcept\b|\bdefinition\b|\bflashcard\b|\bassessment\b)"
+        if re.search(strong_coding,text):
+            return "coding"
+        if re.search(tutor_terms,text):
+            return "tutor"
         if re.search(coding_terms,text):
             return "coding"
-        if re.search(tutor_terms,text) and not re.search(r"\b(write|build|fix|debug|code|repo|github|api)\b",text):
-            return "tutor"
         return "general"
 
     async def chat(self,conversation_id:str,message:str,mode:str|None=None)->tuple[str,str]:
