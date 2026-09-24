@@ -130,9 +130,17 @@ class CommandPolicy:
         if not argv:
             raise WorkspaceSecurityError("Command is empty.")
 
-        if any(self.SHELL_META.fullmatch(token) for token in argv):
+        shell_operators = {
+            ";", "&&", "||", "|", "&", ">", ">>", "<", "<<",
+            "2>", "2>>", "2>&1", "(", ")",
+        }
+        if any(token in shell_operators for token in argv):
             raise WorkspaceSecurityError(
                 "Shell operators and shell interpolation are disabled."
+            )
+        if any("$" in token or "`" in token for token in argv):
+            raise WorkspaceSecurityError(
+                "Shell interpolation is disabled."
             )
 
         binary = Path(argv[0]).name.lower()
