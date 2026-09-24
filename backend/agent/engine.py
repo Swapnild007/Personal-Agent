@@ -6,7 +6,12 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 
-from config import (\n    MAX_TOOL_ROUNDS,\n    OPENAI_API_KEY,\n    OPENAI_BASE_URL,\n    OPENAI_MODEL,\n)
+from config import (
+    MAX_TOOL_ROUNDS,
+    OPENAI_API_KEY,
+    OPENAI_BASE_URL,
+    OPENAI_MODEL,
+)
 from .gateway import OpenAIModelGateway
 from .planner import Planner
 from .runtime import AgentRuntime, TaskState
