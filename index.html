@@ -3,49 +3,84 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07090f">
-<title>RADHA · Autonomous Engineering</title>
-<link rel="stylesheet" href="radha-ui.css?v=5">
+<meta name="theme-color" content="#080b12">
+<title>RADHA · Autonomous AI Agent</title>
+<link rel="stylesheet" href="radha-ui.css?v=6">
 </head>
 <body>
-<div class="ide-shell">
+<div class="radha-app">
 <header class="topbar">
-  <div class="brand"><div class="brand-orb">R</div><div><strong>RADHA</strong><span>ROBUST AUTOMATED DEVELOPER & HEURISTIC ARCHITECT</span></div></div>
-  <div class="top-status"><div class="status-pill live"><i></i><span id="status">DEMO READY</span></div><span id="elapsed" class="elapsed"></span></div>
+  <button class="identity" id="homeBtn"><span class="identity-mark">R</span><span><strong>RADHA</strong><small>AUTONOMOUS SOFTWARE AGENT</small></span></button>
+  <div class="top-actions"><span class="connection"><i></i><span id="connectionText">LOCAL DEMO</span></span><button class="icon-btn" id="settingsBtn">•••</button></div>
 </header>
 
-<section class="workspace-grid">
-<aside class="panel explorer">
-  <div class="panel-head"><span>EXPLORER</span><button id="refresh">↻</button></div>
-  <div class="tree">
-    <div class="tree-folder-title">▾ workspace</div>
-    <div class="tree-children">
-      <button class="tree-file active" data-file="app.py"><span>◈</span>app.py</button>
-      <button class="tree-file" data-file="agent.py"><span>◈</span>agent.py</button>
-      <button class="tree-file" data-file="tests/test_agent.py"><span>◈</span>tests/test_agent.py</button>
-      <button class="tree-file" data-file="README.md"><span>◈</span>README.md</button>
-      <button class="tree-file" data-file="config.py"><span>◈</span>config.py</button>
+<main class="main">
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">ROBUST AUTOMATED DEVELOPER & HEURISTIC ARCHITECT</span>
+      <h1>Tell RADHA what<br><em>needs to happen.</em></h1>
+      <p>RADHA plans the work, inspects your project, changes the code, runs the tools and verifies the result.</p>
     </div>
+    <div class="core-orb"><div class="orb-ring ring-a"></div><div class="orb-ring ring-b"></div><div class="orb-core">R</div><span>AGENT<br>CORE</span></div>
+  </section>
+
+  <section class="mission-card">
+    <div class="mission-head"><div><span>NEW MISSION</span><strong>What should RADHA accomplish?</strong></div><span class="shortcut">⌘ ↵</span></div>
+    <textarea id="prompt" placeholder="Example: Find why the tests are failing, fix the root cause, run the test suite and verify the build."></textarea>
+    <div class="mission-foot">
+      <div class="context-chips"><span>WORKSPACE <b>LOCAL</b></span><span>MODE <b>AUTONOMOUS</b></span><span>MODEL <b>GPT-4o</b></span></div>
+      <button class="launch" id="run">START MISSION <span>↗</span></button>
+    </div>
+  </section>
+
+  <section class="agent-grid">
+    <div class="panel activity">
+      <div class="panel-title"><div><span>AGENT ACTIVITY</span><strong id="missionState">READY</strong></div><span id="timer">00:00</span></div>
+      <div class="workflow">
+        <div class="stage active" data-stage="understand"><i></i><div><b>Understand</b><small>Interpret the objective</small></div></div>
+        <div class="stage" data-stage="inspect"><i></i><div><b>Inspect</b><small>Explore project context</small></div></div>
+        <div class="stage" data-stage="build"><i></i><div><b>Build</b><small>Change code and execute tools</small></div></div>
+        <div class="stage" data-stage="verify"><i></i><div><b>Verify</b><small>Test and validate the result</small></div></div>
+        <div class="stage" data-stage="report"><i></i><div><b>Report</b><small>Explain what changed</small></div></div>
+      </div>
+      <div class="live-log" id="trace"><div class="empty">Start a mission to watch RADHA work.</div></div>
+    </div>
+
+    <div class="panel result">
+      <div class="panel-title"><div><span>MISSION RESULT</span><strong id="resultTitle">Waiting for a mission</strong></div><span class="result-dot" id="resultDot"></span></div>
+      <div class="result-body" id="resultBody">
+        <div class="result-empty"><div class="result-icon">✦</div><h2>RADHA is ready.</h2><p>Give her an outcome, not a list of keystrokes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lower-grid">
+    <div class="panel workspace-card">
+      <div class="panel-title"><div><span>WORKSPACE CONTEXT</span><strong>What RADHA can act on</strong></div><button class="text-btn">VIEW</button></div>
+      <div class="context-list">
+        <div><span class="context-icon">⌘</span><div><b>Project files</b><small>Read, create, patch and inspect source</small></div></div>
+        <div><span class="context-icon">›_</span><div><b>Terminal</b><small>Run tests, builds and development commands</small></div></div>
+        <div><span class="context-icon">✓</span><div><b>Verification</b><small>Observe output and repair failures when safe</small></div></div>
+      </div>
+    </div>
+    <div class="panel missions">
+      <div class="panel-title"><div><span>RECENT MISSIONS</span><strong>Your agent history</strong></div></div>
+      <div id="history" class="history"><div class="history-empty">No missions yet.</div></div>
+    </div>
+  </section>
+</main>
+
+<div class="mission-overlay" id="overlay" hidden>
+  <div class="overlay-card">
+    <div class="overlay-top"><span>RADHA IS WORKING</span><button id="minimize">—</button></div>
+    <div class="overlay-orb"><div>R</div></div>
+    <strong id="overlayState">UNDERSTANDING REQUEST</strong>
+    <p id="overlayText">RADHA is preparing the execution plan.</p>
+    <div class="overlay-progress"><i id="progress"></i></div>
+    <button id="cancel">CANCEL MISSION</button>
   </div>
-</aside>
-
-<section class="panel editor-panel">
-  <div class="editor-head"><span id="file-title">app.py</span><div class="editor-controls"><button id="diff">DIFF</button><span id="view-label" class="muted">READ VIEW</span></div></div>
-  <div class="editor-wrap"><pre id="editor"></pre></div>
-  <section class="terminal-panel"><div class="terminal-head"><span>TERMINAL STREAM</span><span class="muted">LIVE STDOUT / STDERR</span></div><pre id="terminal" class="terminal-host"></pre></section>
-</section>
-
-<aside class="panel intelligence">
-  <div class="intel-title"><div><span>RADHA CORE</span><strong>INTELLIGENCE HUB</strong></div><div class="pulse"></div></div>
-  <div class="task-state"><div><span>MISSION STATE</span><strong id="mission">READY</strong></div><div id="round" class="state-round">IDLE</div></div>
-  <textarea id="prompt" placeholder="Describe the software task…&#10;&#10;Try: inspect the project, find the failing test, fix it and verify the build."></textarea>
-  <div class="actions"><button id="run" class="run">RUN RADHA</button><button id="cancel" disabled>CANCEL</button></div>
-  <div class="change-intel"><div class="section-head"><span>CHANGE INTELLIGENCE</span><span id="change-count">0</span></div><div id="changes" class="section-empty">No files changed in this task.</div></div>
-  <div class="timeline"><div class="section-head"><span>TASK TIMELINE</span><span id="timeline-count">0</span></div><div id="timeline" class="section-empty">Planning, execution and verification will appear here.</div></div>
-  <div class="trace"><div class="trace-head"><span>LIVE TOOL TRACE</span><span id="event-count">0 events</span></div><div id="trace" class="empty-trace">RADHA activity will appear here.</div></div>
-</aside>
-</section>
 </div>
-<script src="radha-ui.js?v=5"></script>
+
+<script src="radha-ui.js?v=6"></script>
 </body>
 </html>
