@@ -114,9 +114,24 @@ async def health() -> dict[str, Any]:
     }
 
 
+
+
+
+
+@app.get("/workspace/file")
+async def workspace_file(path: str) -> dict[str, Any]:
+    try:
+        return await asyncio.to_thread(tools.read_file, path)
+    except Exception as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
 @app.get("/workspace/tree")
 async def workspace_tree() -> dict[str, Any]:
-    return await asyncio.to_thread(tools.list_directory, ".")
+    try:
+        return await asyncio.to_thread(tools.tree, ".")
+    except Exception as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @app.post("/tasks")
