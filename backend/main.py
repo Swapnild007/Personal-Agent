@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from agent.engine import RadhaEngine
 from agent.tools import ToolRegistry
-from config import CORS_ORIGINS, HOST, PORT, WORKSPACE_ROOT
+from config import CORS_ORIGINS, HOST, OPENAI_API_KEY, PORT, WORKSPACE_ROOT
 
 
 class ConnectionHub:
@@ -51,13 +51,25 @@ class ConnectionHub:
 hub = ConnectionHub()
 tools = ToolRegistry()
 engine: RadhaEngine | None = None
+engine_error: str | None = None
 running_tasks: dict[str, asyncio.Task[None]] = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global engine
-    engine = RadhaEngine(tools, hub.publish)
+    global engine, engine_error
+
+    if OPENAI_API_KEY:
+        try:
+            engine = RadhaEngine(tools, hub.publish)
+            engine_error = None
+        except Exception as exc:
+            engine = None
+            engine_error = str(exc)
+    else:
+        engine = None
+        engine_error = "OPENAI_API_KEY is not configured."
+
     yield
 
     for task in list(running_tasks.values()):
@@ -69,7 +81,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RADHA Agent Runtime",
-    version="0.5.0",
+    version="0.5.1",
     lifespan=lifespan,
 )
 
@@ -97,6 +109,7 @@ async def health() -> dict[str, Any]:
         "agent": "RADHA",
         "runtime": "coding-capability",
         "workspace": str(WORKSPACE_ROOT),
+        "model_configured": engine is not None,
         "running_tasks": len(running_tasks),
     }
 
@@ -109,13 +122,16 @@ async def workspace_tree() -> dict[str, Any]:
 @app.post("/tasks")
 async def create_task(payload: TaskRequest) -> dict[str, str]:
     if engine is None:
-        raise HTTPException(503, "Agent engine is not ready.")
+        raise HTTPException(
+            503,
+            engine_error or "Agent engine is not ready.",
+        )
 
     task_id = str(uuid.uuid4())
     task = asyncio.create_task(engine.run(task_id, payload.request))
     running_tasks[task_id] = task
 
-    def cleanup(completed_task: asyncio.Task[None]) -> None:
+    def cleanup(_: asyncio.Task[None]) -> None:
         running_tasks.pop(task_id, None)
 
     task.add_done_callback(cleanup)
@@ -125,7 +141,13 @@ async def create_task(payload: TaskRequest) -> dict[str, str]:
 @app.post("/tasks/{task_id}/cancel")
 async def cancel_task(task_id: str) -> dict[str, str]:
     if engine is None:
-        raise HTTPException(503, "Agent engine is not ready.")
+        raise HTTPException(
+            503,
+            engine_error or "Agent engine is not ready.",
+        )
+
+    if task_id not in engine.runtime.tasks:
+        raise HTTPException(404, "Task not found.")
 
     engine.cancel(task_id)
     task = running_tasks.get(task_id)
@@ -142,7 +164,14 @@ async def resolve_approval(
     payload: ApprovalRequest,
 ) -> dict[str, Any]:
     if engine is None:
-        raise HTTPException(503, "Agent engine is not ready.")
+        raise HTTPException(
+            503,
+            engine_error or "Agent engine is not ready.",
+        )
+
+    task = engine.runtime.tasks.get(task_id)
+    if task is None:
+        raise HTTPException(404, "Task not found.")
 
     resolved = (
         engine.approve(approval_id)
