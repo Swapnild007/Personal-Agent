@@ -12,9 +12,9 @@ WORKSPACE_ROOT = Path(
     os.getenv("RADHA_WORKSPACE_ROOT", str(BASE_DIR / "workspace"))
 ).resolve()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("RADHA_MODEL", "gpt-4o")
-OPENAI_BASE_URL = os.getenv("RADHA_MODEL_BASE_URL", "")
+OMNIROUTE_BASE_URL = os.getenv("OMNIROUTE_BASE_URL", "http://127.0.0.1:20128/v1")
+OMNIROUTE_API_KEY = os.getenv("OMNIROUTE_API_KEY", "")
+OMNIROUTE_MODEL = os.getenv("RADHA_MODEL", "auto/coding")
 HOST = os.getenv("RADHA_HOST", "127.0.0.1")
 PORT = int(os.getenv("RADHA_PORT", "8000"))
 COMMAND_TIMEOUT_SECONDS = int(os.getenv("RADHA_COMMAND_TIMEOUT", "60"))
@@ -31,6 +31,7 @@ CORS_ORIGINS = [
     for value in os.getenv(
         "RADHA_CORS_ORIGINS",
         "http://localhost:3000",
+        "https://swapnild007.github.io",
     ).split(",")
     if value.strip()
 ]
