@@ -46,18 +46,20 @@ def test_write_and_read_round_trip(tmp_path: Path) -> None:
     assert read["content"] == "print('hello')\n"
 
 
-@pytest.mark.asyncio
-async def test_command_streams_stdout(tmp_path: Path) -> None:
+def test_command_streams_stdout(tmp_path: Path) -> None:
     tools = ToolRegistry(Workspace(tmp_path / "workspace"))
     chunks: list[tuple[str, str]] = []
 
     async def collect(stream: str, chunk: str) -> None:
         chunks.append((stream, chunk))
 
-    result = await tools.execute_command_streaming(
+    async def run() -> dict:
+        return await tools.execute_command_streaming(
         "python -c \"print('stream-ok')\"",
-        on_output=collect,
-    )
+            on_output=collect,
+        )
+
+    result = asyncio.run(run())
 
     assert result["status"] == "completed"
     assert "stream-ok" in result["stdout"]
