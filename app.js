@@ -12,3 +12,13 @@ document.querySelector("#start").addEventListener("click",()=>show("Radha is lis
 document.querySelector("#core-nav").addEventListener("click",()=>show("Radha core is active."));
 document.querySelector("#chat-nav").addEventListener("click",()=>show("Chat space is ready."));
 document.querySelector("#control-nav").addEventListener("click",()=>show("Control center is ready."));
+(function(){
+  function repairViewport(){
+    document.documentElement.style.setProperty('--radha-vw','100vw');
+    document.body.style.width='100%';
+    document.body.style.minWidth='100%';
+  }
+  repairViewport();
+  window.addEventListener('resize',repairViewport,{passive:true});
+  window.addEventListener('orientationchange',repairViewport,{passive:true});
+})();
