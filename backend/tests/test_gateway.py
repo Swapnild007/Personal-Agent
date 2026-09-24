@@ -91,8 +91,8 @@ def test_gateway_raises_for_http_errors() -> None:
                 messages=[{"role": "user", "content": "hello"}],
                 tools=[],
             )
-        except httpx.HTTPStatusError as exc:
-            assert exc.response.status_code == 401
+        except RuntimeError as exc:
+            assert "HTTP 401" in str(exc)
         else:
             raise AssertionError("Expected OmniRoute HTTP error")
         finally:
