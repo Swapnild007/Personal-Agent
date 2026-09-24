@@ -7,7 +7,7 @@ from agent.gateway import OmniRouteModelGateway
 
 def test_gateway_normalizes_chat_and_tool_calls() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/chat/completions"
+        assert request.url.path == "/v1/chat/completions"
         body = request.read()
         assert b'"model":"auto/coding"' in body
         return httpx.Response(
