@@ -1,7 +1,81 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#03121a"><title>RADHA • Personal Assistant</title><link rel="stylesheet" href="radha-ui.css?v=2"></head><body><div class="app-shell">
-<section class="screen splash active" data-screen="splash"><div class="orb a"></div><div class="orb b"></div><div class="splash-brand"><span class="mini">••</span>RADHA</div><div class="hero"><div class="halo"></div><div class="antenna"><i></i></div><div class="hair"></div><div class="head"><div class="ears"></div><div class="visor"><i></i><i></i><b>⌣</b></div></div><div class="neck"></div><div class="torso"><span></span></div><div class="arms"></div></div><div class="splash-copy"><small>PERSONAL INTELLIGENCE</small><h1>Meet <em>Radha.</em></h1><p>Your personal AI companion for thinking, building and learning.</p><button data-go="home">Enter Radha <b>↗</b></button><a data-go="home">Skip intro</a></div></section>
-<section class="screen home" data-screen="home"><header class="top glass"><button class="brand" data-go="home"><span class="avatar"><i></i><i></i></span><span><b>Radha</b><small>PERSONAL INTELLIGENCE</small></span></button><span class="credits">✦ <b>10</b></span></header><main><div class="home-hero"><div class="bot-wrap"><div class="bot-glow"></div><div class="bot"><div class="antenna"><i></i></div><div class="hair"></div><div class="head"><div class="ear l"></div><div class="ear r"></div><div class="visor"><i></i><i></i><b>⌣</b></div></div><div class="neck"></div><div class="body"><span class="collar"></span><span class="chest"></span></div><div class="arm l"></div><div class="arm r"></div></div></div><div class="greeting"><small>YOUR PERSONAL AI</small><h1>Good morning.</h1><h2>I'm <em>Radha.</em></h2><p>Think with me. Build with me.<br>Learn something new with me.</p></div></div>
-<div class="premium"><div><small>♛ &nbsp; PREMIUM PLAN</small><h3>Unlock more<br>with Radha.</h3><p>Advanced capabilities for deeper work, learning and creation.</p><button data-toast="Premium features are ready.">Explore ↗</button></div><div class="mini-bot"><div></div><i></i><i></i></div></div>
-<section><label>PREMIUM FEATURE</label><div class="grid"><button class="card" data-mode="General"><span>✦</span><b>General</b><small>Research · plan · write</small><i>→</i></button><button class="card" data-mode="Coding"><span class="violet">&lt;/&gt;</span><b>Coding</b><small>Build · debug · review</small><i>→</i></button></div></section>
-<section><label>RECENTLY USED <button data-toast="Recent Radha sessions.">VIEW ALL</button></label><div class="grid"><button class="card compact" data-toast="Opening Research."><span>Tr</span><b>Research</b><small>Explore a topic</small></button><button class="card compact" data-go="speech"><span class="violet">◉</span><b>AI voice</b><small>Talk with Radha</small></button></div></section></main><nav class="bottom glass"><button class="active" data-go="home">⌂<small>Home</small></button><button data-go="speech">◌<small>Chat</small></button><button class="core" data-toast="Radha core is active.">✦</button><button data-toast="Radha memory is ready.">◫<small>Memory</small></button><button data-toast="Control center is ready.">⌁<small>Control</small></button></nav></section>
-<section class="screen speech" data-screen="speech"><header><button data-go="home">‹</button><h1>Speech to text</h1><span></span></header><main><small>RADHA LISTENING</small><h2>Good morning.</h2><p>Thank you for giving me the opportunity<br>to speak today.</p><div class="voice"><div class="wave"></div><button id="mic">⌁</button><b id="timer">00:54</b><span id="hint">Tap to speak with Radha</span></div></main></section><div id="toast"></div></div><script src="radha-ui.js?v=2"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#03121a">
+<title>RADHA • Personal Assistant</title>
+<link rel="stylesheet" href="radha-ui.css?v=3">
+</head>
+<body>
+<div class="app-shell">
+<section class="screen splash active" data-screen="splash">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="splash-brand"><span class="mini">••</span>RADHA</div>
+  <div class="hero"><div class="halo"></div><div class="antenna"><i></i></div><div class="hair"></div><div class="head"><div class="ears"></div><div class="visor"><i></i><i></i><b>⌣</b></div></div><div class="neck"></div><div class="torso"><span></span></div><div class="arms"></div></div>
+  <div class="splash-copy"><small>PERSONAL INTELLIGENCE</small><h1>Meet <em>Radha.</em></h1><p>Your personal AI companion for thinking, building and learning.</p><button data-go="home">Enter Radha <b>↗</b></button><a data-go="home">Skip intro</a></div>
+</section>
+
+<section class="screen home" data-screen="home">
+<header class="top glass">
+  <button class="brand" data-go="home"><span class="avatar"><i></i><i></i></span><span><b>Radha</b><small>PERSONAL INTELLIGENCE</small></span></button>
+  <span class="credits">✦ <b>10</b></span>
+</header>
+<main>
+  <div class="home-hero">
+    <div class="bot-wrap"><div class="bot-glow"></div><div class="bot"><div class="antenna"><i></i></div><div class="hair"></div><div class="head"><div class="ear l"></div><div class="ear r"></div><div class="visor"><i></i><i></i><b>⌣</b></div></div><div class="neck"></div><div class="body"><span class="collar"></span><span class="chest"></span></div><div class="arm l"></div><div class="arm r"></div></div></div>
+    <div class="greeting"><small>YOUR PERSONAL AI</small><h1>Good morning.</h1><h2>I'm <em>Radha.</em></h2><p>Think with me. Build with me.<br>Learn something new with me.</p></div>
+  </div>
+  <div class="premium"><div><small>♛ &nbsp; PREMIUM PLAN</small><h3>Unlock more<br>with Radha.</h3><p>Advanced capabilities for deeper work, learning and creation.</p><button data-toast="Premium features are ready.">Explore ↗</button></div><div class="mini-bot"><div></div><i></i><i></i></div></div>
+  <section><label>PREMIUM FEATURE</label><div class="grid"><button class="card" data-mode="general"><span>✦</span><b>General</b><small>Research · plan · write</small><i>→</i></button><button class="card" data-mode="coding"><span class="violet">&lt;/&gt;</span><b>Coding</b><small>Build · debug · review</small><i>→</i></button></div></section>
+  <section><label>RECENTLY USED <button data-toast="Recent Radha sessions.">VIEW ALL</button></label><div class="grid"><button class="card compact" data-toast="Opening Research."><span>Tr</span><b>Research</b><small>Explore a topic</small></button><button class="card compact" data-go="speech"><span class="violet">◉</span><b>AI voice</b><small>Talk with Radha</small></button></div></section>
+</main>
+<nav class="bottom glass">
+  <button class="active" data-go="home">⌂<small>Home</small></button>
+  <button data-go="chat">◌<small>Chat</small></button>
+  <button class="core" data-go="chat">✦</button>
+  <button data-toast="Radha memory is ready.">◫<small>Memory</small></button>
+  <button data-go="control">⌁<small>Control</small></button>
+</nav>
+</section>
+
+<section class="screen chat" data-screen="chat">
+<header class="chat-header">
+  <button class="back" data-go="home">‹</button>
+  <div><b>Radha</b><small>ONLINE · PERSONAL INTELLIGENCE</small></div>
+  <span class="chat-face">••</span>
+</header>
+<div class="mode-strip">
+  <button class="mode active" data-chat-mode="general">General</button>
+  <button class="mode" data-chat-mode="coding">Coding</button>
+  <button class="mode" data-chat-mode="tutor">Tutor</button>
+</div>
+<main class="chat-main" id="chat-main">
+  <div class="radha-message"><span class="msg-avatar">••</span><div><small>RADHA</small><p>I'm ready. What should we work on?</p></div></div>
+  <div class="suggestions"><button data-prompt="Help me plan my day.">Plan my day</button><button data-prompt="Explain something to me simply.">Teach me</button><button data-prompt="Help me build something.">Build with me</button></div>
+</main>
+<form class="composer glass" id="composer">
+  <textarea id="message" rows="1" placeholder="Talk to Radha…" autocomplete="off"></textarea>
+  <button type="submit" aria-label="Send">↑</button>
+</form>
+</section>
+
+<section class="screen speech" data-screen="speech">
+<header><button data-go="home">‹</button><h1>Speech to text</h1><span></span></header>
+<main><small>RADHA LISTENING</small><h2>Good morning.</h2><p>Thank you for giving me the opportunity<br>to speak today.</p><div class="voice"><div class="wave"></div><button id="mic">⌁</button><b id="timer">00:54</b><span id="hint">Tap to speak with Radha</span></div></main>
+</section>
+
+<section class="screen control" data-screen="control">
+<header><button data-go="home">‹</button><h1>Radha Control</h1><span></span></header>
+<main class="control-main">
+  <div class="control-hero"><div class="control-face">••</div><small>ONE CORE AGENT</small><h2>Radha Core</h2><p>One agent. Three operating modes. Shared memory.</p></div>
+  <div class="control-card"><label>BACKEND CONNECTION</label><div class="status-row"><span id="api-dot"></span><b id="api-status">Demo mode</b></div><p>Connect the deployed FastAPI endpoint to enable real cloud conversations.</p><input id="api-base" placeholder="https://your-agent.example.com"><button id="save-api">Save connection</button></div>
+  <div class="control-card"><label>AGENT MODES</label><div class="mode-list"><span>General <small>Research · plan · write</small></span><span>Coding <small>Build · debug · review</small></span><span>Tutor <small>Teach · practice · assess</small></span></div></div>
+</main>
+</section>
+
+<div id="toast"></div>
+</div>
+<script src="radha-ui.js?v=3"></script>
+</body>
+</html>

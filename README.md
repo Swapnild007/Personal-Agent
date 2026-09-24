@@ -1,84 +1,78 @@
 # RADHA Personal-Agent
 
-A single-user personal AI agent built from scratch.
+One personal AI agent with three operating modes.
 
-## Actual agent count
+## Agent count
 
-One AI agent: Radha.
+**1 actual agent: Radha.**
 
-Radha is not three separate agents. The product has one orchestrator, one shared memory store, and three operating modes:
+The product has one orchestrator, one shared memory store and one tool registry.
 
-1. General: everyday questions, research, planning and writing.
-2. Coding: code generation, debugging, review and testing.
-3. Tutor: adaptive teaching, exercises and assessment.
+Modes:
+- General: research, planning, writing and everyday work
+- Coding: build, debug, review and testing
+- Tutor: teach, practice and assess
 
-Changing mode changes the operating instructions. It does not create another model, memory store, or agent.
+The modes do not create separate agents.
 
-## Current backend
+## Current tools
 
-- FastAPI
-- Cloud LLM only
-- OpenAI-compatible chat completions endpoint
-- SQLite long-term memory
-- Explicit tool registry
-- remember, recall and web_fetch tools
-- Bounded tool-call loop
-- No unrestricted shell access
-- No model weights on the device
+- remember
+- recall
+- web_fetch
 
-The GitHub Pages UI is a client-side prototype. Real cloud-agent conversations require the Python backend to be deployed and configured with LLM_API_KEY and LLM_MODEL.
+The tool loop is bounded. There is no unrestricted shell tool and no model stored on the device.
 
-## UI
+## Frontend
 
-RADHA is a mobile-first AI companion interface based on the supplied reference composition:
+The GitHub Pages frontend is a mobile-first RADHA companion UI inspired by the supplied reference screens. It includes:
 
-- RADHA female companion identity
-- Splash / welcome screen
-- Home screen
-- Premium feature cards
-- Recently used cards
-- Speech-to-text interaction
-- Fixed mobile navigation
-- Responsive desktop shell
-- CSS-rendered animated companion
-- Reference screenshots are not embedded in the project
+- Splash / welcome
+- Home
+- General / Coding mode entry
+- Chat with mode selector
+- Speech interaction
+- Control / API connection screen
+- Persistent bottom navigation
+- Animated CSS-rendered Radha companion
 
-Figma design:
-https://www.figma.com/design/sQ4Ex7iJZmeqQrpb2Ksj7F
+The reference screenshots themselves are not shipped as project assets.
 
-## Setup
+## Real API connection
 
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
+The frontend can connect to a deployed FastAPI backend from the Control screen.
 
-Set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL, DATABASE_PATH and MAX_TOOL_ROUNDS.
+Backend:
+- GET /health
+- GET /memory
+- POST /chat
 
-Run:
+Configure:
+- LLM_BASE_URL
+- LLM_API_KEY
+- LLM_MODEL
+- DATABASE_PATH
+- MAX_TOOL_ROUNDS
+- CORS_ORIGINS
+
+Example:
+```
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
 
-Health:
-GET /health
+The UI remains usable in Demo mode when no backend URL is configured.
 
-Chat:
-POST /chat with message, conversation_id and mode.
+## Figma
 
-## Architecture
-
-RADHA -> Agent Orchestrator -> Cloud LLM
-                         -> Tool Registry -> Memory
-                                         -> Web fetch
-                         -> SQLite
-
-Modes: General / Coding / Tutor
+RADHA design file:
+https://www.figma.com/design/sQ4Ex7iJZmeqQrpb2Ksj7F
 
 ## Roadmap
 
-1. Connect the RADHA UI to the API
-2. Browser automation
-3. GitHub tools
-4. File intelligence
-5. Scheduled/proactive tasks
-6. Approval and audit system
-7. Evaluation suite
+1. Deploy the FastAPI service
+2. Connect browser/web research tools
+3. Add GitHub integration
+4. Add file intelligence
+5. Add approval/audit boundaries
+6. Add evaluation tests
+7. Add proactive scheduled tasks
