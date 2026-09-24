@@ -6,14 +6,15 @@ Goal: prove the autonomous loop.
 
 - [x] Define general agent architecture
 - [x] Define runtime contract
-- [ ] Agent state machine
-- [ ] Model gateway
-- [ ] Planner
-- [ ] Tool registry
-- [ ] Coding capability
-- [ ] Workspace execution
-- [ ] Streaming events
-- [ ] Approval flow
+- [x] Agent state machine
+- [x] Model gateway
+- [x] Planner
+- [x] Tool registry
+- [x] Coding capability
+- [x] Workspace execution
+- [x] Streaming task events
+- [x] Approval flow
+- [x] Backend syntax/test CI
 
 ## Phase 02 — Real Agent Workspace
 
