@@ -77,6 +77,7 @@ async def lifespan(app: FastAPI):
 
     if engine is not None:
         engine.approvals.cancel_all()
+        await engine.gateway.close()
 
 
 app = FastAPI(
