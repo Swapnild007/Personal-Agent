@@ -7,6 +7,7 @@ import re
 import shlex
 import subprocess
 import tempfile
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Awaitable, Callable
@@ -316,6 +317,7 @@ class ToolRegistry:
             "path": self.workspace.relative(file_path),
             "bytes": size,
             "content": content,
+            "sha256": hashlib.sha256(file_path.read_bytes()).hexdigest(),
         }
 
     def write_file(self, path: str, content: str) -> dict[str, Any]:
