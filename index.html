@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Personal-Agent</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+<div class="app-shell">
+<header class="topbar glass">
+  <div class="brand"><div class="brand-orb"></div><div><strong>PERSONAL<span>-AGENT</span></strong><small>INTELLIGENCE CORE</small></div></div>
+  <div class="system-status"><i></i><span>ONLINE</span><b>v0.1</b></div>
+  <button class="icon-btn" id="settings" aria-label="Settings">⚙</button>
+</header>
+<main>
+<section class="hero">
+  <div class="eyebrow"><i></i> PERSONAL AI SYSTEM</div>
+  <h1>What can I help<br><em>you accomplish?</em></h1>
+  <p>One intelligent interface for thinking, coding and learning.</p>
+  <div class="core-wrap"><div class="core-ring ring-1"></div><div class="core-ring ring-2"></div><div class="core-ring ring-3"></div><div class="core"><div class="core-dot"></div><span>AI</span></div><div class="core-state">READY</div></div>
+</section>
+<section class="modes">
+  <button class="mode active" data-mode="General"><span class="mode-icon">✦</span><span><b>General</b><small>Ask, plan, research</small></span><strong>→</strong></button>
+  <button class="mode" data-mode="Coding"><span class="mode-icon">&lt;/&gt;</span><span><b>Coding</b><small>Build, debug, review</small></span><strong>→</strong></button>
+  <button class="mode" data-mode="Tutor"><span class="mode-icon">◈</span><span><b>Tutor</b><small>Learn, practice, assess</small></span><strong>→</strong></button>
+</section>
+<section class="workspace glass">
+  <div class="workspace-head"><div><span class="live-dot"></span><b id="mode-label">GENERAL AGENT</b></div><span class="context">CONTEXT READY</span></div>
+  <div class="prompt-area"><span class="prompt-mark">›</span><span id="placeholder">Ask Personal-Agent anything...</span><textarea id="prompt" aria-label="Message"></textarea></div>
+  <div class="workspace-foot"><div class="chips"><button>Research</button><button>Explain</button><button>Plan</button></div><button class="send" id="send">↑</button></div>
+</section>
+<section class="telemetry"><div><span>CORE</span><b>STANDBY</b></div><div><span>MEMORY</span><b>READY</b></div><div><span>TOOLS</span><b>0 ACTIVE</b></div><div><span>SESSION</span><b>LOCAL</b></div></section>
+</main>
+<footer>PERSONAL-AGENT <span>•</span> PRIVATE INTELLIGENCE INTERFACE</footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
