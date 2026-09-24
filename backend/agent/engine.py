@@ -8,11 +8,11 @@ from typing import Any, Awaitable, Callable
 
 from config import (
     MAX_TOOL_ROUNDS,
-    OPENAI_API_KEY,
-    OPENAI_BASE_URL,
-    OPENAI_MODEL,
+    OMNIROUTE_API_KEY,
+    OMNIROUTE_BASE_URL,
+    OMNIROUTE_MODEL,
 )
-from .gateway import OpenAIModelGateway
+from .gateway import OmniRouteModelGateway
 from .planner import Planner
 from .runtime import AgentRuntime, TaskState
 from .tools import ToolRegistry
@@ -46,16 +46,15 @@ class ApprovalGate:
 
 class RadhaEngine:
     def __init__(self, tools: ToolRegistry, emit: EventSink) -> None:
-        if not OPENAI_API_KEY:
-            raise RuntimeError("OPENAI_API_KEY is not configured.")
+        if not OMNIROUTE_BASE_URL:
+            raise RuntimeError("OMNIROUTE_BASE_URL is not configured.")
 
         self.emit = emit
         self.tools = tools
         self.runtime = AgentRuntime(emit)
-        self.gateway = OpenAIModelGateway(
-            api_key=OPENAI_API_KEY,
-            model=OPENAI_MODEL,
-            base_url=OPENAI_BASE_URL or None,
+        self.gateway = OmniRouteModelGateway(
+            api_key=OMNIROUTE_API_KEY,
+            model=OMNIROUTE_MODEL,
         )
         self.planner = Planner()
         self.approvals = ApprovalGate()
@@ -86,6 +85,16 @@ class RadhaEngine:
                     messages=history,
                     tools=self.tools.definitions(),
                 )
+                if response.decision or response.model:
+                    await self.runtime.event(
+                        task,
+                        "model_routed",
+                        model=response.model,
+                        decision=response.decision,
+                        round=round_number,
+                    )
+                if not response.choices:
+                    raise RuntimeError("OmniRoute returned no choices.")
                 message = response.choices[0].message
 
                 assistant_message: dict[str, Any] = {
