@@ -8,16 +8,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
-WORKSPACE_ROOT = Path(os.getenv("RADHA_WORKSPACE_ROOT", str(BASE_DIR / "workspace"))).resolve()
+WORKSPACE_ROOT = Path(
+    os.getenv("RADHA_WORKSPACE_ROOT", str(BASE_DIR / "workspace"))
+).resolve()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("RADHA_MODEL", "gpt-4o")
+OPENAI_BASE_URL = os.getenv("RADHA_MODEL_BASE_URL", "")
 HOST = os.getenv("RADHA_HOST", "127.0.0.1")
 PORT = int(os.getenv("RADHA_PORT", "8000"))
 COMMAND_TIMEOUT_SECONDS = int(os.getenv("RADHA_COMMAND_TIMEOUT", "60"))
 MAX_TOOL_ROUNDS = int(os.getenv("RADHA_MAX_TOOL_ROUNDS", "24"))
-MAX_FILE_BYTES = int(os.getenv("RADHA_MAX_FILE_BYTES", str(2 * 1024 * 1024)))
-MAX_COMMAND_OUTPUT_BYTES = int(os.getenv("RADHA_MAX_COMMAND_OUTPUT_BYTES", str(256 * 1024)))
+MAX_FILE_BYTES = int(
+    os.getenv("RADHA_MAX_FILE_BYTES", str(2 * 1024 * 1024))
+)
+MAX_COMMAND_OUTPUT_BYTES = int(
+    os.getenv("RADHA_MAX_COMMAND_OUTPUT_BYTES", str(256 * 1024))
+)
 MAX_DIRECTORY_ENTRIES = int(os.getenv("RADHA_MAX_DIRECTORY_ENTRIES", "500"))
 CORS_ORIGINS = [
     value.strip()
